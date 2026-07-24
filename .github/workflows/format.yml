@@ -22,7 +22,7 @@ jobs:
 
       - name: Cache deps & format
         run: |
-          deno install
+          deno ci
           deno x oxfmt --write .
 
       - name: Commit changes
