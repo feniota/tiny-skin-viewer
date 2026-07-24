@@ -479,6 +479,12 @@
     }
   },
   "workspace": {
+    "dependencies": [
+      "npm:@sveltejs/vite-plugin-svelte@7",
+      "npm:@webgpu/types@~0.1.71",
+      "npm:svelte@5",
+      "npm:vite@8"
+    ],
     "packageJson": {
       "dependencies": [
         "npm:@sveltejs/vite-plugin-svelte@^7.1.2",

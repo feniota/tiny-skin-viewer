@@ -1,5 +1,5 @@
 <script lang="ts">
-    import shaderCode from "./shader.wgsl?raw";
+    import shaderCode from "./shader.ts";
 
     let canvas = $state<HTMLCanvasElement | null>(null);
     let raf = $state(0);

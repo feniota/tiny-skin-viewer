@@ -21,7 +21,7 @@ GPU-driven Minecraft skin viewer. All rendering — model transform, limb animat
 
 <SkinViewer
     skinUrl="/skin1.png"   <!-- texture URL, default /skin1.png -->
-    isSlim                 <!-- Alex arms (3 px) -->
+    isSlim
     scale={1.5}            <!-- uniform zoom -->
     resetId={resetCount}   <!-- bump to reset rotation -->
 />
@@ -32,7 +32,7 @@ GPU-driven Minecraft skin viewer. All rendering — model transform, limb animat
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `skinUrl` | `string` | `"/skin1.png"` | 64×64 skin texture |
-| `isSlim` | `boolean` | `false` | Alex (3 px arms) vs Steve (4 px) |
+| `isSlim` | `boolean` | `false` | Slim (3 px arms) vs Classic (4 px) |
 | `scale` | `number` | `1` | uniform model scale |
 | `resetId` | `number` | `0` | triggers rotation reset on change |
 
