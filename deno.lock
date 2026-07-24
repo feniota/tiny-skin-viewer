@@ -2,12 +2,15 @@
   "version": "5",
   "specifiers": {
     "npm:@sveltejs/package@^2.5.8": "2.5.8_svelte@5.56.7_typescript@6.0.3",
+    "npm:@sveltejs/vite-plugin-svelte@^7.1.2": "7.2.0_svelte@5.56.7_vite@8.1.5__@types+node@24.13.3_@types+node@24.13.3",
     "npm:@tsconfig/svelte@^5.0.8": "5.0.8",
     "npm:@types/node@^24.13.2": "24.13.3",
     "npm:@webgpu/types@~0.1.71": "0.1.71",
     "npm:oxfmt@0.60": "0.60.0_svelte@5.56.7",
     "npm:svelte-check@^4.7.1": "4.7.3_svelte@5.56.7_typescript@6.0.3",
-    "npm:typescript@~6.0.2": "6.0.3"
+    "npm:svelte@^5.56.4": "5.56.7",
+    "npm:typescript@~6.0.2": "6.0.3",
+    "npm:vite@^8.1.1": "8.1.5_@types+node@24.13.3"
   },
   "npm": {
     "@emnapi/core@1.11.1": {
