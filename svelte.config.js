@@ -1,2 +1,5 @@
-/** @type {import("@sveltejs/vite-plugin-svelte").SvelteConfig} */
-export default {};
+/** @type {import("@sveltejs/package").Config} */
+export default {
+  source: "src/lib",
+  dir: "dist",
+};

@@ -14,13 +14,24 @@ GPU-driven Minecraft skin viewer. All rendering — model transform, limb animat
 
 ## Usage
 
-This package is published to [JSR](https://jsr.io) as `@feniota/tiny-skin-viewer`, or on NPM as `tiny-skin-viewer`. Add it to your dependencies to get started.
+Install via your preferred registry:
+
+```bash
+# JSR
+deno add @feniota/tiny-skin-viewer
+
+# npm / pnpm / yarn
+npm install tiny-skin-viewer
+pnpm add tiny-skin-viewer
+yarn add tiny-skin-viewer
+```
 
 ### Svelte component
 
 ```svelte
 <script>
-  import { SkinViewer } from "@feniota/tiny-skin-viewer";
+  import { SkinViewer } from "tiny-skin-viewer";
+  // JSR 用户:  import { SkinViewer } from "@feniota/tiny-skin-viewer";
 </script>
 
 <SkinViewer skinUrl="/steve.png" isSlim scale={1.5} resetId={resetCount} />
@@ -45,6 +56,15 @@ After editing the generator, regenerate both the `.wgsl` and `.ts` shader files:
 
 ```sh
 deno task generate-shader
+```
+
+### Build
+
+This package uses `@sveltejs/package` to build the library for npm:
+
+```sh
+deno task package
+# → outputs to dist/
 ```
 
 <details>
@@ -97,13 +117,14 @@ deno x oxfmt
 
 ### Publishing workflow
 
-```
-# If the shader is changed
-deno task generate-shader
+1. Change version in `deno.jsonc` and `package.json`
+2. Tag & push — CI does the rest:
 
-# If the Svelte file is changes
-deno task compile-component
-
-# publish
-deno publish
+```bash
+git tag v0.1.1 && git push --tags
 ```
+
+The CI workflow will:
+- Build the package via `@sveltejs/package`
+- Publish to **JSR** (`@feniota/tiny-skin-viewer`)
+- Publish to **npm** (`tiny-skin-viewer`)

@@ -1,46 +1,45 @@
 {
-  "name": "@feniota/tiny-skin-viewer",
-  "version": "0.1.1",
+  "name": "tiny-skin-viewer",
+  "version": "0.1.2",
   "description": "Tiny GPU-driven Minecraft skin viewer — WebGPU + Svelte 5",
-  "homepage": "https://github.com/feniota/tiny-skin-viewer#readme",
-  "bugs": {
-    "url": "https://github.com/feniota/tiny-skin-viewer/issues"
-  },
   "license": "MIT",
+  "homepage": "https://github.com/feniota/tiny-skin-viewer#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/feniota/tiny-skin-viewer.git"
   },
+  "bugs": {
+    "url": "https://github.com/feniota/tiny-skin-viewer/issues"
+  },
+  "type": "module",
+  "svelte": "./dist/SkinViewer.svelte",
+  "exports": {
+    ".": {
+      "svelte": "./dist/SkinViewer.svelte",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./shader.wgsl": "./dist/shader.wgsl"
+  },
   "files": [
-    "src/lib",
+    "dist",
     "LICENSE",
     "README.md"
   ],
-  "type": "module",
-  "svelte": "./src/lib/entry-svelte.ts",
-  "exports": {
-    ".": {
-      "svelte": "./src/lib/entry-svelte.ts",
-      "types": "./src/lib/index.ts",
-      "default": "./src/lib/index.ts"
-    },
-    "./shader.wgsl": "./src/lib/shader.wgsl"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
+    "package": "svelte-package",
+    "prepublishOnly": "svelte-package",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "@webgpu/types": "^0.1.71"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@sveltejs/package": "^2.5.8",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^24.13.2",
+    "@webgpu/types": "^0.1.71",
     "oxfmt": "^0.60.0",
     "svelte": "^5.56.4",
     "svelte-check": "^4.7.1",
@@ -49,5 +48,8 @@
   },
   "peerDependencies": {
     "svelte": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
