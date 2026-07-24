@@ -1,13 +1,22 @@
-// Type declarations for the compiled SkinViewer.svelte.js.
-// Placed alongside SkinViewer.js so Deno type-checking passes.
+/**
+ * Type declarations for the compiled `SkinViewer.js`.
+ *
+ * Placed alongside the compiled JS module so Deno/JSR can infer the
+ * component's type without slow type-inference on the Svelte-generated code.
+ *
+ * @module
+ */
 
-interface SkinViewerProps {
+import type { Component } from "svelte";
+
+interface _SkinViewerProps {
   skinUrl?: string;
   isSlim?: boolean;
   scale?: number;
   resetId?: number;
 }
 
-declare const SkinViewer: import("svelte").Component<SkinViewerProps>;
+/** Svelte 5 component that renders an animated Minecraft player skin. */
+declare const SkinViewer: Component<_SkinViewerProps>;
 
 export default SkinViewer;

@@ -1,12 +1,13 @@
 {
   "$schema": "https://github.com/denoland/deno/raw/refs/heads/main/cli/schemas/config-file.v1.json",
-  // ── JSR metadata (publishing target) ────────────────────────
+
+  // ── JSR metadata ────────────────────────────────────────────
   "name": "@feniota/tiny-skin-viewer",
   "version": "0.1.0",
+  "description": "Tiny GPU-driven Minecraft skin viewer — WebGPU + Svelte 5, all rendering in a single WGSL shader, no dependencies.",
   "exports": {
     ".": "./src/lib/index.ts"
   },
-  "exclude": ["lib/SkinViewer.js"],
   "publish": {
     "include": ["src/lib/**/*", "README.md", "LICENSE"]
   },

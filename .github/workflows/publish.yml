@@ -1,0 +1,34 @@
+# Publish to JSR (with provenance) on every tag push.
+#
+# Uses OIDC authentication — no API token needed.
+# Make sure your JSR package has "GitHub Actions" linked under
+#   Settings → Linked Accounts on jsr.io so the OIDC trust is set up.
+#
+# Usage:
+#   git tag v0.1.0 && git push --tags
+
+name: publish
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # ← required for OIDC + provenance
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Compile Svelte component
+        run: deno task compile-component
+
+      - name: Publish to JSR
+        run: deno publish
