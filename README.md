@@ -125,6 +125,7 @@ git tag v0.1.1 && git push --tags
 ```
 
 The CI workflow will:
+
 - Build the package via `@sveltejs/package`
 - Publish to **JSR** (`@feniota/tiny-skin-viewer`)
 - Publish to **npm** (`tiny-skin-viewer`)

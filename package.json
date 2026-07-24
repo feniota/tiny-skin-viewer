@@ -2,15 +2,20 @@
   "name": "tiny-skin-viewer",
   "version": "0.1.2",
   "description": "Tiny GPU-driven Minecraft skin viewer — WebGPU + Svelte 5",
-  "license": "MIT",
   "homepage": "https://github.com/feniota/tiny-skin-viewer#readme",
+  "bugs": {
+    "url": "https://github.com/feniota/tiny-skin-viewer/issues"
+  },
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/feniota/tiny-skin-viewer.git"
   },
-  "bugs": {
-    "url": "https://github.com/feniota/tiny-skin-viewer/issues"
-  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "type": "module",
   "svelte": "./dist/SkinViewer.svelte",
   "exports": {
@@ -21,11 +26,9 @@
     },
     "./shader.wgsl": "./dist/shader.wgsl"
   },
-  "files": [
-    "dist",
-    "LICENSE",
-    "README.md"
-  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "package": "svelte-package",
     "prepublishOnly": "svelte-package",
@@ -48,8 +51,5 @@
   },
   "peerDependencies": {
     "svelte": "^5.0.0"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }
