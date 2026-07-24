@@ -1,5 +1,7 @@
 # TinySkinViewer
 
+[![JSR](https://jsr.io/badges/@feniota/tiny-skin-viewer)](https://jsr.io/@feniota/tiny-skin-viewer)
+
 GPU-driven Minecraft skin viewer. All rendering — model transform, limb animation, skin sampling, scale — runs in a single WGSL shader. CPU only feeds 5 floats per frame.
 
 ## vs. [bs-community/skinview3d](https://github.com/bs-community/skinview3d)
@@ -82,7 +84,6 @@ deno task generate-shader
 - **Draw**: single `draw(216)` — 6 parts × 36 vertices
 
 </details>
-
 
 ## Development
 
