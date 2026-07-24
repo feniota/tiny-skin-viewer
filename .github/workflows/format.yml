@@ -16,11 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install oxfmt
-        run: npm install -g oxfmt
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
 
-      - name: Format
-        run: oxfmt --write .
+      - name: Cache deps & format
+        run: |
+          deno install
+          deno x oxfmt --write .
 
       - name: Commit changes
         run: |
