@@ -1,32 +1,30 @@
 {
+  "$schema": "https://github.com/denoland/deno/raw/refs/heads/main/cli/schemas/config-file.v1.json",
   // ── JSR metadata (publishing target) ────────────────────────
   "name": "@feniota/tiny-skin-viewer",
   "version": "0.1.0",
   "exports": {
     ".": "./src/lib/index.ts"
   },
+  "exclude": ["lib/SkinViewer.js"],
   "publish": {
-    "include": [
-      "src/lib/**/*",
-      "README.md",
-      "LICENSE"
-    ]
+    "include": ["src/lib/**/*", "README.md", "LICENSE"]
   },
 
   // ── Local development tasks ─────────────────────────────────
   "tasks": {
-    "dev":              "deno run -A npm:vite",
-    "build":            "deno run -A npm:vite build",
-    "preview":          "deno run -A npm:vite preview",
-    "generate-shader":  "deno run --allow-write scripts/generate-shader.ts",
-    "compile-component":"deno run -A scripts/compile-component.ts"
+    "dev": "deno run -A npm:vite",
+    "build": "deno run -A npm:vite build",
+    "preview": "deno run -A npm:vite preview",
+    "generate-shader": "deno run --allow-write scripts/generate-shader.ts",
+    "compile-component": "deno run -A scripts/compile-component.ts"
   },
 
   // ── Import map (npm compatibility) ──────────────────────────
   "imports": {
-    "svelte":                        "npm:svelte@^5",
-    "@webgpu/types":                 "npm:@webgpu/types@^0.1.71",
-    "@sveltejs/vite-plugin-svelte":  "npm:@sveltejs/vite-plugin-svelte@^7",
-    "vite":                          "npm:vite@^8"
+    "svelte": "npm:svelte@^5",
+    "@webgpu/types": "npm:@webgpu/types@^0.1.71",
+    "@sveltejs/vite-plugin-svelte": "npm:@sveltejs/vite-plugin-svelte@^7",
+    "vite": "npm:vite@^8"
   }
 }

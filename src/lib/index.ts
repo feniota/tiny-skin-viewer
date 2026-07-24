@@ -6,17 +6,35 @@
 // This default export uses a pre-compiled wrapper so Deno/JSR
 // can validate the module graph without needing a Svelte plugin.
 
+// deno-lint-ignore no-sloppy-imports
 export { default as SkinViewer } from "./SkinViewer.js";
 
-// ── Public prop types ─────────────────────────────────────────
-
+/** Properties for the SkinViewer component */
 export interface SkinViewerProps {
-  /** 64×64 Minecraft skin texture URL (default: "/steve.png"). */
+  /**
+   * Minecraft skin texture URL.
+   *
+   * - Default: "/steve.png"
+   */
   skinUrl?: string;
-  /** true = Alex (3-pixel arms), false = Steve (4-pixel). */
+  /**
+   * Arm thickness of the targeted texture.
+   *
+   * - true = Slim (3px)
+   * - false = Classic (4px)
+   */
   isSlim?: boolean;
-  /** Uniform model scale factor (default: 1). */
+  /**
+   * Model scale factor. The larger this, the bigger the 3D model appears.
+   *
+   * - Default: 1
+   */
   scale?: number;
-  /** Bump to trigger rotation reset (default: 0). */
+  /**
+   * Rotation reset triggerer.
+   *
+   * This should be a Svelte 5 $state. Once it changes, an internal $effect
+   * listener would reset the rotation angle of the model.
+   */
   resetId?: number;
 }

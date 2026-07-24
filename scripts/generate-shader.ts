@@ -26,71 +26,195 @@
 
 // ── constants ────────────────────────────────────────────────────
 
-const PX = 1 / 16;        // 1 pixel → block units
-const Y0 = 16 * PX;       // vertical centering offset (model is 32 px tall)
-const T  = 1 / 64;        // 1 texture pixel → normalised UV
-const PIVOT_Y = 6 * PX;   // arm/leg pivot: half limb height = 6 px above centre
+const PX = 1 / 16; // 1 pixel → block units
+const Y0 = 16 * PX; // vertical centering offset (model is 32 px tall)
+const T = 1 / 64; // 1 texture pixel → normalised UV
+const PIVOT_Y = 6 * PX; // arm/leg pivot: half limb height = 6 px above centre
 
 // ── data types ────────────────────────────────────────────────────
 
 /** One body part (head / body / arm / leg) */
 interface Part {
-    name: string;
-    /** centre position in Minecraft pixel coords */
-    px: number; py: number; pz: number;
-    /** dimensions in pixels (full extents, not half) */
-    sx: number; sy: number; sz: number;
-    /** animation phase: 0 = static, ±1 = ±sin(time) */
-    phase: number;
-    /**
-     * Texture UV rectangles for 6 faces.
-     * Each entry: [x0, y0, x1, y1] in 64×64 pixel space.
-     * Face order: front(+Z) back(−Z) top(+Y) bottom(−Y) right(+X) left(−X)
-     */
-    uv: [number, number, number, number][];
+  name: string;
+  /** centre position in Minecraft pixel coords */
+  px: number;
+  py: number;
+  pz: number;
+  /** dimensions in pixels (full extents, not half) */
+  sx: number;
+  sy: number;
+  sz: number;
+  /** animation phase: 0 = static, ±1 = ±sin(time) */
+  phase: number;
+  /**
+   * Texture UV rectangles for 6 faces.
+   * Each entry: [x0, y0, x1, y1] in 64×64 pixel space.
+   * Face order: front(+Z) back(−Z) top(+Y) bottom(−Y) right(+X) left(−X)
+   */
+  uv: [number, number, number, number][];
 }
 
 // ── body part definitions (Minecraft Java Edition player model) ──
 
 const parts: Part[] = [
-    // name          centre (px)    size (px)  phase  UV rectangles (6 faces)
-    //               x   y   z      x  y  z
-    { name: "head", px: 0, py:28, pz: 0, sx: 8, sy: 8, sz: 8, phase: 0,
-      uv: [[ 8, 8,16,16],[24, 8,32,16],[ 8, 0,16, 8],[16, 0,24, 8],[ 0, 8, 8,16],[16, 8,24,16]] },
-    { name: "body", px: 0, py:18, pz: 0, sx: 8, sy:12, sz: 4, phase: 0,
-      uv: [[20,20,28,32],[32,20,40,32],[20,16,28,20],[28,16,36,20],[16,20,20,32],[28,20,32,32]] },
-    { name: "right_arm", px:-6, py:18, pz: 0, sx: 4, sy:12, sz: 4, phase: 1,
-      uv: [[44,20,48,32],[52,20,56,32],[44,16,48,20],[48,16,52,20],[40,20,44,32],[48,20,52,32]] },
-    { name: "left_arm", px: 6, py:18, pz: 0, sx: 4, sy:12, sz: 4, phase: -1,
-      uv: [[36,52,40,64],[52,52,56,64],[36,48,40,52],[48,48,52,52],[40,52,44,64],[48,52,52,64]] },
-    { name: "right_leg", px:-2, py: 6, pz: 0, sx: 4, sy:12, sz: 4, phase: -1,
-      uv: [[ 4,20, 8,32],[12,20,16,32],[ 4,16, 8,20],[ 8,16,12,20],[ 0,20, 4,32],[ 8,20,12,32]] },
-    { name: "left_leg", px: 2, py: 6, pz: 0, sx: 4, sy:12, sz: 4, phase: 1,
-      uv: [[20,52,24,64],[28,52,32,64],[20,48,24,52],[28,48,32,52],[24,52,28,64],[32,52,36,64]] },
+  // name          centre (px)    size (px)  phase  UV rectangles (6 faces)
+  //               x   y   z      x  y  z
+  {
+    name: "head",
+    px: 0,
+    py: 28,
+    pz: 0,
+    sx: 8,
+    sy: 8,
+    sz: 8,
+    phase: 0,
+    uv: [
+      [8, 8, 16, 16],
+      [24, 8, 32, 16],
+      [8, 0, 16, 8],
+      [16, 0, 24, 8],
+      [0, 8, 8, 16],
+      [16, 8, 24, 16],
+    ],
+  },
+  {
+    name: "body",
+    px: 0,
+    py: 18,
+    pz: 0,
+    sx: 8,
+    sy: 12,
+    sz: 4,
+    phase: 0,
+    uv: [
+      [20, 20, 28, 32],
+      [32, 20, 40, 32],
+      [20, 16, 28, 20],
+      [28, 16, 36, 20],
+      [16, 20, 20, 32],
+      [28, 20, 32, 32],
+    ],
+  },
+  {
+    name: "right_arm",
+    px: -6,
+    py: 18,
+    pz: 0,
+    sx: 4,
+    sy: 12,
+    sz: 4,
+    phase: 1,
+    uv: [
+      [44, 20, 48, 32],
+      [52, 20, 56, 32],
+      [44, 16, 48, 20],
+      [48, 16, 52, 20],
+      [40, 20, 44, 32],
+      [48, 20, 52, 32],
+    ],
+  },
+  {
+    name: "left_arm",
+    px: 6,
+    py: 18,
+    pz: 0,
+    sx: 4,
+    sy: 12,
+    sz: 4,
+    phase: -1,
+    uv: [
+      [36, 52, 40, 64],
+      [52, 52, 56, 64],
+      [36, 48, 40, 52],
+      [48, 48, 52, 52],
+      [40, 52, 44, 64],
+      [48, 52, 52, 64],
+    ],
+  },
+  {
+    name: "right_leg",
+    px: -2,
+    py: 6,
+    pz: 0,
+    sx: 4,
+    sy: 12,
+    sz: 4,
+    phase: -1,
+    uv: [
+      [4, 20, 8, 32],
+      [12, 20, 16, 32],
+      [4, 16, 8, 20],
+      [8, 16, 12, 20],
+      [0, 20, 4, 32],
+      [8, 20, 12, 32],
+    ],
+  },
+  {
+    name: "left_leg",
+    px: 2,
+    py: 6,
+    pz: 0,
+    sx: 4,
+    sy: 12,
+    sz: 4,
+    phase: 1,
+    uv: [
+      [20, 52, 24, 64],
+      [28, 52, 32, 64],
+      [20, 48, 24, 52],
+      [28, 48, 32, 52],
+      [24, 52, 28, 64],
+      [32, 52, 36, 64],
+    ],
+  },
 ];
 
 // ── unit cube geometry ───────────────────────────────────────────
 
 /** 36 vertices (12 triangles, 2 per face), CCW winding, half-extent 0.5 */
 const CUBE: [number, number, number][] = [
-    // +Z front
-    [-0.5,-0.5, 0.5],[ 0.5,-0.5, 0.5],[ 0.5, 0.5, 0.5],
-    [-0.5,-0.5, 0.5],[ 0.5, 0.5, 0.5],[-0.5, 0.5, 0.5],
-    // −Z back
-    [ 0.5,-0.5,-0.5],[-0.5,-0.5,-0.5],[-0.5, 0.5,-0.5],
-    [ 0.5,-0.5,-0.5],[-0.5, 0.5,-0.5],[ 0.5, 0.5,-0.5],
-    // +Y top
-    [-0.5, 0.5, 0.5],[ 0.5, 0.5, 0.5],[ 0.5, 0.5,-0.5],
-    [-0.5, 0.5, 0.5],[ 0.5, 0.5,-0.5],[-0.5, 0.5,-0.5],
-    // −Y bottom
-    [-0.5,-0.5,-0.5],[ 0.5,-0.5,-0.5],[ 0.5,-0.5, 0.5],
-    [-0.5,-0.5,-0.5],[ 0.5,-0.5, 0.5],[-0.5,-0.5, 0.5],
-    // +X right
-    [ 0.5,-0.5, 0.5],[ 0.5,-0.5,-0.5],[ 0.5, 0.5,-0.5],
-    [ 0.5,-0.5, 0.5],[ 0.5, 0.5,-0.5],[ 0.5, 0.5, 0.5],
-    // −X left
-    [-0.5,-0.5,-0.5],[-0.5,-0.5, 0.5],[-0.5, 0.5, 0.5],
-    [-0.5,-0.5,-0.5],[-0.5, 0.5, 0.5],[-0.5, 0.5,-0.5],
+  // +Z front
+  [-0.5, -0.5, 0.5],
+  [0.5, -0.5, 0.5],
+  [0.5, 0.5, 0.5],
+  [-0.5, -0.5, 0.5],
+  [0.5, 0.5, 0.5],
+  [-0.5, 0.5, 0.5],
+  // −Z back
+  [0.5, -0.5, -0.5],
+  [-0.5, -0.5, -0.5],
+  [-0.5, 0.5, -0.5],
+  [0.5, -0.5, -0.5],
+  [-0.5, 0.5, -0.5],
+  [0.5, 0.5, -0.5],
+  // +Y top
+  [-0.5, 0.5, 0.5],
+  [0.5, 0.5, 0.5],
+  [0.5, 0.5, -0.5],
+  [-0.5, 0.5, 0.5],
+  [0.5, 0.5, -0.5],
+  [-0.5, 0.5, -0.5],
+  // −Y bottom
+  [-0.5, -0.5, -0.5],
+  [0.5, -0.5, -0.5],
+  [0.5, -0.5, 0.5],
+  [-0.5, -0.5, -0.5],
+  [0.5, -0.5, 0.5],
+  [-0.5, -0.5, 0.5],
+  // +X right
+  [0.5, -0.5, 0.5],
+  [0.5, -0.5, -0.5],
+  [0.5, 0.5, -0.5],
+  [0.5, -0.5, 0.5],
+  [0.5, 0.5, -0.5],
+  [0.5, 0.5, 0.5],
+  // −X left
+  [-0.5, -0.5, -0.5],
+  [-0.5, -0.5, 0.5],
+  [-0.5, 0.5, 0.5],
+  [-0.5, -0.5, -0.5],
+  [-0.5, 0.5, 0.5],
+  [-0.5, 0.5, -0.5],
 ];
 
 // ── derived values ────────────────────────────────────────────────
@@ -106,27 +230,43 @@ const uvf = (n: number) => (n * T).toFixed(5);
 console.log(`Generating shader for ${partCount} body parts…`);
 
 // Parts array (positions in block units after centering)
-const partLines = parts.map((p, i) => {
+const partLines = parts
+  .map((p, i) => {
     const comma = i < parts.length - 1 ? "," : "";
-    return `    Part(vec3f(${(p.px * PX).toFixed(4)}, ${(p.py * PX - Y0).toFixed(4)}, ${(p.pz * PX).toFixed(4)}), vec3f(${(p.sx * PX).toFixed(4)}, ${(p.sy * PX).toFixed(4)}, ${(p.sz * PX).toFixed(4)}))${comma} // ${p.name}`;
-}).join("\n");
+    return `    Part(vec3f(${(p.px * PX).toFixed(4)}, ${(p.py * PX - Y0).toFixed(
+      4,
+    )}, ${(p.pz * PX).toFixed(4)}), vec3f(${(p.sx * PX).toFixed(4)}, ${(p.sy * PX).toFixed(
+      4,
+    )}, ${(p.sz * PX).toFixed(4)}))${comma} // ${p.name}`;
+  })
+  .join("\n");
 console.log(`  ✓ positions: ${partCount} parts`);
 
 // UV rectangles per part × face
-const uvBlocks = parts.map((p, i) => {
+const uvBlocks = parts
+  .map((p, i) => {
     const names = ["head", "body", "rarm", "larm", "rleg", "lleg"];
-    const faces = p.uv.map(([x0, y0, x1, y1]) =>
-        `    FaceUV(vec2f(${uvf(x0)}, ${uvf(y0)}), vec2f(${uvf(x1)}, ${uvf(y1)}))`
-    ).join(",\n");
+    const faces = p.uv
+      .map(
+        ([x0, y0, x1, y1]) =>
+          `    FaceUV(vec2f(${uvf(x0)}, ${uvf(y0)}), vec2f(${uvf(x1)}, ${uvf(y1)}))`,
+      )
+      .join(",\n");
     const uvCount = p.uv.length;
-    console.log(`    · ${p.name.padEnd(10)} ${uvCount} faces, ${p.uv.reduce((s, r) => s + (r[2]-r[0])*(r[3]-r[1]), 0)} px²`);
+    console.log(
+      `    · ${p.name.padEnd(10)} ${uvCount} faces, ${p.uv.reduce(
+        (s, r) => s + (r[2] - r[0]) * (r[3] - r[1]),
+        0,
+      )} px²`,
+    );
     return `const uv_${names[i]} = array<FaceUV, 6>(\n${faces}\n);`;
-}).join("\n\n");
+  })
+  .join("\n\n");
 console.log(`  ✓ UV rects: ${parts.length} parts × 6 faces`);
 
 // Cube vertex positions
-const cubeLines = CUBE.map(([x, y, z]) =>
-    `    vec3f(${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)})`
+const cubeLines = CUBE.map(
+  ([x, y, z]) => `    vec3f(${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)})`,
 ).join(",\n");
 console.log(`  ✓ cube: ${CUBE.length} vertices`);
 
@@ -187,7 +327,11 @@ ${cubeLines}
 );
 
 const cube_uv = array<vec2f, ${CUBE.length}>(
-${Array(6).fill("    vec2f(0.0, 0.0), vec2f(1.0, 0.0), vec2f(1.0, 1.0),\n    vec2f(0.0, 0.0), vec2f(1.0, 1.0), vec2f(0.0, 1.0)").join(",\n")}
+${Array(6)
+  .fill(
+    "    vec2f(0.0, 0.0), vec2f(1.0, 0.0), vec2f(1.0, 1.0),\n    vec2f(0.0, 0.0), vec2f(1.0, 1.0), vec2f(0.0, 1.0)",
+  )
+  .join(",\n")}
 );
 
 struct Part {

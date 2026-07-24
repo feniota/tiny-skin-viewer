@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "arrowParens": "avoid",
+  "bracketSameLine": true,
+  "sortImports": true,
+  "sortPackageJson": true,
+  "ignorePatterns": ["**/*.js"],
+  "svelte": true,
+  "proseWrap": "never",
+  "overrides": [
+    {
+      "files": ["./deno.jsonc"],
+      "options": { "trailingComma": "none" }
+    }
+  ]
+}

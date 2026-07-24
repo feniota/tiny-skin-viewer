@@ -18,6 +18,7 @@ const result = compile(source, {
 
 const js = `// Auto-generated from SkinViewer.svelte — do not edit directly
 // Rebuild: deno run -A scripts/compile-component.ts
+// @ts-no-check:
 
 ${result.js.code}
 `;
