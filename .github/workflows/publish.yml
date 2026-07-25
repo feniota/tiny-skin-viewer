@@ -31,6 +31,8 @@ jobs:
         with:
           deno-version: v2.x
       - run: deno ci
+      - run: deno task package
+      - run: deno task compile-component
       - run: deno publish
 
   npm:

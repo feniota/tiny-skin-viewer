@@ -5,8 +5,8 @@
  * PlayerModel.java) and emits a WGSL vertex+ fragment shader.
  *
  * Each part has a BASE layer (indices 0-6) and an OVERLAY layer
- * (indices 7-13) — same position, slightly larger, transparent
- * alpha from the skin texture's second-layer UV area.
+ * (indices 7-13) — same position, slightly larger, with transparent
+ * alpha using the skin texture's second-layer UV area.
  *
  * Cape (indices 6, 13) is handled specially in the vertex shader
  * with pendulum physics computed entirely on the GPU.
@@ -171,7 +171,7 @@ const partDefs: PartDef[] = [
     name: "cape",
     px: 0,
     py: 16,
-    pz: -3,
+    pz: -0.7,
     sx: 10,
     sy: 16,
     sz: 1,
@@ -179,9 +179,9 @@ const partDefs: PartDef[] = [
     uvH: 16,
     uvD: 1,
     phase: 0,
-    u: 1,
-    v: 1,
-    overlayUv: [1, 1],
+    u: 0,
+    v: 0,
+    overlayUv: [0, 0],
   },
 ];
 
@@ -216,6 +216,13 @@ const overlayParts: Part[] = partDefs.map(d => ({
   u: d.overlayUv[0],
   v: d.overlayUv[1],
 }));
+// Cape overlay should not expand — no separate overlay texture, so expanding
+// it makes the 1-px-thick cape look visibly thicker for no benefit.
+const capeIdx = partDefs.findIndex(d => d.name === "cape");
+overlayParts[capeIdx].sx = partDefs[capeIdx].sx;
+overlayParts[capeIdx].sy = partDefs[capeIdx].sy;
+overlayParts[capeIdx].sz = partDefs[capeIdx].sz;
+
 const parts = [...baseParts, ...overlayParts];
 
 // ── unit cube geometry ───────────────────────────────────────────
@@ -312,10 +319,32 @@ const partLines = parts
 const uvBlocks = parts
   .map((p, i) => {
     let uv = partUVs[i];
-    // Cape is a flat plane — both +Z (face 0) and -Z (face 1) share the same UV
+    // Cape uses a separate 64×32 texture → hardcoded UV from cape.txt mapping
     if (i === 6 || i === 13) {
-      uv = [...uv];
-      (uv as any)[1] = uv[0];
+      // User-provided pixel rects on a 64×32 cape texture:
+      //   face 0 (+Z, outward):  (1,  1) → (10, 16)
+      //   face 1 (-Z, inward):   (12, 1) → (21, 16)
+      //   face 2 (+Y, top):      (1,  0) → (10,  0)
+      //   face 3 (-Y, bottom):   (11, 0) → (20,  0)
+      //   face 4 (+X, right):    (11, 1) → (11, 16)
+      //   face 5 (-X, left):     (0,  1) → ( 0, 16)
+      const capeFaceUV: [number, number, number, number][] = [
+        [1, 1, 11, 17], // +Z outward
+        [12, 1, 22, 17], // -Z inward
+        [1, 0, 11, 1], // +Y top
+        [11, 0, 21, 1], // -Y bottom
+        [11, 1, 12, 17], // +X right
+        [0, 1, 1, 17], // -X left
+      ];
+      const uvW = 64,
+        uvH = 32;
+      const faces = capeFaceUV
+        .map(
+          ([x0, y0, x1, y1]) =>
+            `    FaceUV(vec2f(${(x0 / uvW).toFixed(5)}, ${(y0 / uvH).toFixed(5)}), vec2f(${(x1 / uvW).toFixed(5)}, ${(y1 / uvH).toFixed(5)}))`,
+        )
+        .join(",\n");
+      return `const uv_${uvName(i)} = array<FaceUV, 6>(\n${faces}\n);`;
     }
     const faces = uv
       .map(
@@ -473,17 +502,24 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
         if (uniforms.has_cape == 0.0) {
             p = vec3f(0.0);
         } else {
-            // Pivot at the top of the cape (attachment point on back)
+            // Pivot at the top of the cape (body centre level, attachment point)
             let cape_pivot = vec3f(0.0, part.pos.y + part.size.y * 0.5, part.pos.z);
 
-            // Walking-driven pendulum — same time base as limb swing (time * 4.0)
-            let walk  = uniforms.time * 4.0;
-            let sway_z = sin(walk) * 0.06;
-            let bob_x  = sin(walk + 1.2) * 0.08;
+            // Match Minecraft cape animation:
+            //   X rot = (6° baseTilt + capeLean/2 + flap) × PI/180
+            //   flap  = sin(walkDist × 6.0) × 32° × pow   (walking-driven)
+            //   lean  ≈ 25°                                 (walking at ~0.5 b/s)
+            //   pow   ≈ 0.5 for walking → flap amplitude ≈ 16°
+            //
+            // Our walk cycle (time × 4.0) is slower than the actual game, so the
+            // cape flap frequency is reduced accordingly (× 3.0 instead of × 6.0).
+            let walk   = uniforms.time * 4.0;
+            let flap   = sin(walk * 2.0) * 0.07;   // ~16° amplitude
+            let angle_x = 0.60 + flap;
 
-            // Match Minecraft: 6° base backward lean + walking swing
-            let base_tilt = 0.105; // ~6° in radians
-            let cape_rot = mul4(rotate_z(sway_z), rotate_x(bob_x + base_tilt));
+            // First rotate by PI around Y (face backward), then tilt the cape
+            // AWAY from the body (negative X rotation in our coordinate system)
+            let cape_rot = mul4(rotate_y(3.14159), rotate_x(-angle_x));
             p = (cape_rot * vec4f(p - cape_pivot, 1.0)).xyz + cape_pivot;
         }
     }
@@ -511,10 +547,9 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
 
 @fragment
 fn fs_main(@location(0) uv: vec2f, @location(1) is_cape: f32) -> @location(0) vec4f {
-    if (is_cape > 0.5) {
-        return textureSample(cape_tex, skin_sampler, uv);
-    }
-    return textureSample(skin, skin_sampler, uv);
+    let base = textureSample(skin, skin_sampler, uv);
+    let cape = textureSample(cape_tex, skin_sampler, uv);
+    return mix(base, cape, is_cape);
 }
 `;
 
@@ -523,7 +558,7 @@ fn fs_main(@location(0) uv: vec2f, @location(1) is_cape: f32) -> @location(0) ve
 await Deno.writeTextFile("src/lib/shader.wgsl", wgsl);
 await Deno.writeTextFile(
   "src/lib/shader.ts",
-  `// Auto-generated by scripts/generate-shader.ts\nconst shaderCode = ${JSON.stringify(wgsl)};\nexport default shaderCode;\n`,
+  `// Auto-generated by scripts/generate-shader.ts\nconst shaderCode: string = ${JSON.stringify(wgsl)};\nexport default shaderCode;\n`,
 );
 
 console.log(`\n✅  src/lib/shader.wgsl  (${(wgsl.length / 1024).toFixed(1)} KB)`);

@@ -1,6 +1,51 @@
+<!-- @component
+A tiny 3D Minecraft skin viewer, rendered with WebGPU.
+
+## Example - Basic usage
+
+```svelte
+<script>
+  let reset = $state(0);
+  let scale = $state(0);
+</script>
+
+<button onclick={() => reset++}>Reset rotation angle</button>
+<button onclick={() => scale += 0.1}>Zoom in</button>
+<button onclick={() => scale -= 0.1}>Zoom out</button>
+
+<SkinViewer skinUrl="https://textures.minecraft.net/texture/a1b2c3" scale={scale} resetId={reset} />
+```
+
+## Example - WebGPU fallback handling
+
+If WebGPU is unavailable, this component fails and nothing is drawn on the `<canvas>`.
+You can detect this separately and show a fallback, e.g.,
+
+```svelte
+<script>
+  import { onMount } from "svelte";
+
+  let webgpu: boolean = $state(false);
+
+  onMount(async () => {
+    // navigator.gpu may be undefined in insecure contexts
+    if (navigator.gpu) {
+      webgpu = (await navigator.gpu.requestAdapter()) !== null;
+    }
+    else webgpu = false;
+  });
+</script>
+
+{#if webgpu}
+  <SkinViewer skinUrl="https://textures.minecraft.net/texture/a1b2c3"/>
+{:else}
+  <span>WebGPU not available.</span>
+{/if}
+```
+-->
 <script lang="ts">
-  import type { SkinViewerProps } from "./index";
   import shaderCode from "./shader";
+  import type { SkinViewerProps } from "./types.d.ts";
 
   let canvas = $state<HTMLCanvasElement | null>(null);
   let raf = $state(0);
@@ -9,7 +54,7 @@
 
   let {
     isSlim = false,
-    capeUrl = undefined as string | undefined,
+    capeUrl = undefined as string | undefined | null,
     time = undefined as number | undefined,
     scale = 1,
     skinUrl = "https://assets.ferris.love/phenocryst/steve.png",
@@ -29,12 +74,15 @@
   let lastX = 0,
     lastY = 0;
   let gpuInited = false;
+  let initId = 0;
+  let cachedDevice: GPUDevice | undefined;
 
   $effect(() => {
     if (!canvas) return;
+    let id = ++initId;
     void skinUrl;
     void capeUrl;
-    init(canvas);
+    init(canvas, id);
     return () => cancelAnimationFrame(raf);
   });
 
@@ -67,9 +115,11 @@
     });
   }
 
-  async function init(cvs: HTMLCanvasElement) {
+  async function init(cvs: HTMLCanvasElement, id: number) {
     cvs.width = width;
     cvs.height = height;
+
+    if (id !== initId) return;
 
     if (!gpuInited) {
       gpuInited = true;
@@ -98,9 +148,12 @@
 
     try {
       const gpu = navigator.gpu;
+      if (id !== initId) return;
       const adapter = await gpu.requestAdapter();
       if (!adapter) return console.error("WebGPU not available");
-      const device = await adapter.requestDevice();
+      if (id !== initId) return;
+      const device = cachedDevice ?? (await adapter.requestDevice());
+      cachedDevice = device;
       device.addEventListener("uncapturederror", (e: GPUUncapturedErrorEvent) =>
         console.error("WebGPU error:", e.error),
       );
@@ -111,12 +164,14 @@
       ctx.configure({ device, format, alphaMode: "premultiplied" });
 
       const shader = device.createShaderModule({ code: shaderCode });
+      if (id !== initId) return;
       const skinTexture = await loadTexture(device, skinUrl);
       const sampler = device.createSampler({
         magFilter: "nearest",
         minFilter: "nearest",
       });
 
+      if (id !== initId) return;
       // Cape — uses placeholder 1×1 when disabled (required by pipeline layout)
       let capeTexture = placeholderTexture(device);
       if (capeUrl) {
@@ -199,7 +254,7 @@
         const pass = encoder.beginRenderPass({
           colorAttachments: [
             {
-              view: ctx.getCurrentTexture().createView(),
+              view: ctx!.getCurrentTexture().createView(),
               loadOp: "clear",
               storeOp: "store",
               clearValue: { r: 0, g: 0, b: 0, a: 0 },

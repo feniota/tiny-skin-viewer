@@ -107,14 +107,14 @@ const parts = array<Part, 14>(
     Part(vec3f(0.3750, 0.1250, 0.0000), vec3f(0.2500, 0.7500, 0.2500)), // left_arm
     Part(vec3f(-0.1250, -0.6250, 0.0000), vec3f(0.2500, 0.7500, 0.2500)), // right_leg
     Part(vec3f(0.1250, -0.6250, 0.0000), vec3f(0.2500, 0.7500, 0.2500)), // left_leg
-    Part(vec3f(0.0000, 0.0000, -0.1875), vec3f(0.6250, 1.0000, 0.0625)), // cape
+    Part(vec3f(0.0000, 0.0000, -0.0437), vec3f(0.6250, 1.0000, 0.0625)), // cape
     Part(vec3f(0.0000, 0.7500, 0.0000), vec3f(0.5313, 0.5313, 0.5313)), // head_overlay
     Part(vec3f(0.0000, 0.1250, 0.0000), vec3f(0.5313, 0.7813, 0.2813)), // body_overlay
     Part(vec3f(-0.3750, 0.1250, 0.0000), vec3f(0.2813, 0.7813, 0.2813)), // right_arm_overlay
     Part(vec3f(0.3750, 0.1250, 0.0000), vec3f(0.2813, 0.7813, 0.2813)), // left_arm_overlay
     Part(vec3f(-0.1250, -0.6250, 0.0000), vec3f(0.2813, 0.7813, 0.2813)), // right_leg_overlay
     Part(vec3f(0.1250, -0.6250, 0.0000), vec3f(0.2813, 0.7813, 0.2813)), // left_leg_overlay
-    Part(vec3f(0.0000, 0.0000, -0.1875), vec3f(0.6563, 1.0313, 0.0938)) // cape_overlay
+    Part(vec3f(0.0000, 0.0000, -0.0437), vec3f(0.6250, 1.0000, 0.0625)) // cape_overlay
 );
 
 const phases = array<f32, 14>(0.0, 0.0, 1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0, -1.0, 1.0, 0.0);
@@ -179,12 +179,12 @@ const uv_lleg = array<FaceUV, 6>(
 );
 
 const uv_cape = array<FaceUV, 6>(
-    FaceUV(vec2f(0.03125, 0.03125), vec2f(0.18750, 0.28125)),
-    FaceUV(vec2f(0.03125, 0.03125), vec2f(0.18750, 0.28125)),
-    FaceUV(vec2f(0.03125, 0.01563), vec2f(0.18750, 0.03125)),
-    FaceUV(vec2f(0.18750, 0.01563), vec2f(0.20313, 0.03125)),
-    FaceUV(vec2f(0.18750, 0.03125), vec2f(0.20313, 0.28125)),
-    FaceUV(vec2f(0.01563, 0.03125), vec2f(0.03125, 0.28125))
+    FaceUV(vec2f(0.01563, 0.03125), vec2f(0.17188, 0.53125)),
+    FaceUV(vec2f(0.18750, 0.03125), vec2f(0.34375, 0.53125)),
+    FaceUV(vec2f(0.01563, 0.00000), vec2f(0.17188, 0.03125)),
+    FaceUV(vec2f(0.17188, 0.00000), vec2f(0.32813, 0.03125)),
+    FaceUV(vec2f(0.17188, 0.03125), vec2f(0.18750, 0.53125)),
+    FaceUV(vec2f(0.00000, 0.03125), vec2f(0.01563, 0.53125))
 );
 
 const uv_head_ov = array<FaceUV, 6>(
@@ -242,12 +242,12 @@ const uv_lleg_ov = array<FaceUV, 6>(
 );
 
 const uv_cape_ov = array<FaceUV, 6>(
-    FaceUV(vec2f(0.03125, 0.03125), vec2f(0.18750, 0.28125)),
-    FaceUV(vec2f(0.03125, 0.03125), vec2f(0.18750, 0.28125)),
-    FaceUV(vec2f(0.03125, 0.01563), vec2f(0.18750, 0.03125)),
-    FaceUV(vec2f(0.18750, 0.01563), vec2f(0.20313, 0.03125)),
-    FaceUV(vec2f(0.18750, 0.03125), vec2f(0.20313, 0.28125)),
-    FaceUV(vec2f(0.01563, 0.03125), vec2f(0.03125, 0.28125))
+    FaceUV(vec2f(0.01563, 0.03125), vec2f(0.17188, 0.53125)),
+    FaceUV(vec2f(0.18750, 0.03125), vec2f(0.34375, 0.53125)),
+    FaceUV(vec2f(0.01563, 0.00000), vec2f(0.17188, 0.03125)),
+    FaceUV(vec2f(0.17188, 0.00000), vec2f(0.32813, 0.03125)),
+    FaceUV(vec2f(0.17188, 0.03125), vec2f(0.18750, 0.53125)),
+    FaceUV(vec2f(0.00000, 0.03125), vec2f(0.01563, 0.53125))
 );
 
 fn uv_for_part(part_id: u32, face: u32) -> FaceUV {
@@ -320,17 +320,24 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
         if (uniforms.has_cape == 0.0) {
             p = vec3f(0.0);
         } else {
-            // Pivot at the top of the cape (attachment point on back)
+            // Pivot at the top of the cape (body centre level, attachment point)
             let cape_pivot = vec3f(0.0, part.pos.y + part.size.y * 0.5, part.pos.z);
 
-            // Walking-driven pendulum — same time base as limb swing (time * 4.0)
-            let walk  = uniforms.time * 4.0;
-            let sway_z = sin(walk) * 0.06;
-            let bob_x  = sin(walk + 1.2) * 0.08;
+            // Match Minecraft cape animation:
+            //   X rot = (6° baseTilt + capeLean/2 + flap) × PI/180
+            //   flap  = sin(walkDist × 6.0) × 32° × pow   (walking-driven)
+            //   lean  ≈ 25°                                 (walking at ~0.5 b/s)
+            //   pow   ≈ 0.5 for walking → flap amplitude ≈ 16°
+            //
+            // Our walk cycle (time × 4.0) is slower than the actual game, so the
+            // cape flap frequency is reduced accordingly (× 3.0 instead of × 6.0).
+            let walk   = uniforms.time * 4.0;
+            let flap   = sin(walk * 2.0) * 0.07;   // ~16° amplitude
+            let angle_x = 0.60 + flap;
 
-            // Match Minecraft: 6° base backward lean + walking swing
-            let base_tilt = 0.105; // ~6° in radians
-            let cape_rot = mul4(rotate_z(sway_z), rotate_x(bob_x + base_tilt));
+            // First rotate by PI around Y (face backward), then tilt the cape
+            // AWAY from the body (negative X rotation in our coordinate system)
+            let cape_rot = mul4(rotate_y(3.14159), rotate_x(-angle_x));
             p = (cape_rot * vec4f(p - cape_pivot, 1.0)).xyz + cape_pivot;
         }
     }
@@ -358,8 +365,7 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
 
 @fragment
 fn fs_main(@location(0) uv: vec2f, @location(1) is_cape: f32) -> @location(0) vec4f {
-    if (is_cape > 0.5) {
-        return textureSample(cape_tex, skin_sampler, uv);
-    }
-    return textureSample(skin, skin_sampler, uv);
+    let base = textureSample(skin, skin_sampler, uv);
+    let cape = textureSample(cape_tex, skin_sampler, uv);
+    return mix(base, cape, is_cape);
 }

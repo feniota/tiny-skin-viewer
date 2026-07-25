@@ -9,7 +9,8 @@
     ".": "./src/jsr.ts"
   },
   "publish": {
-    "include": ["src/lib/**/*", "src/client/**/*", "src/jsr.ts", "README.md", "LICENSE"]
+    "include": ["src/jsr.ts", "dist/**/*", "README.md", "LICENSE"],
+    "exclude": ["!dist/"]
   },
 
   // ── Local development tasks ─────────────────────────────────
@@ -19,7 +20,7 @@
     "preview": "deno run -A npm:vite preview",
     "generate-shader": "deno run --allow-write scripts/generate-shader.ts",
     "package": "deno run -A npm:@sveltejs/package",
-    "compile-client": "deno eval 'import{compile}from\"npm:svelte/compiler\";const src=await Deno.readTextFile(\"src/lib/SkinViewer.svelte\");const r=compile(src,{name:\"SkinViewer\",filename:\"SkinViewer.svelte\",generate:\"client\"});await Deno.writeTextFile(\"src/client/SkinViewer.client.js\",r.js.code);console.log(\"Compiled\",r.js.code.length,\"bytes\");'"
+    "compile-component": "deno run --allow-read --allow-write scripts/compile-component.ts"
   },
 
   // ── Import map (npm compatibility) ──────────────────────────

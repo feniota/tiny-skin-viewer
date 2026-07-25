@@ -1,13 +1,12 @@
 /**
- * Entry point for JSR (`@feniota/tiny-skin-viewer`).
+ * JSR entry point for `@feniota/tiny-skin-viewer`.
  *
- * Exports a **pre-compiled** Svelte 5 component (`SkinViewer`) so that
- * bundlers using Vite or esbuild can resolve the entire module graph
- * without needing a Svelte plugin.
+ * Re-exports a pre-compiled JavaScript module so that JSR can validate
+ * the entire module graph without needing a Svelte plugin.
  *
  * @module
  */
 
 // deno-lint-ignore no-sloppy-imports
-export { default as SkinViewer } from "./client/SkinViewer.client.js";
-export type { SkinViewerProps } from "./client/SkinViewer.client.js";
+export { default as SkinViewer } from "../dist/SkinViewer.svelte.js";
+export type { SkinViewerProps } from "../dist/types.d.ts";

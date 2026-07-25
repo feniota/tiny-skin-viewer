@@ -54,11 +54,11 @@ yarn add tiny-skin-viewer
 | `capeUrl` | `string \| undefined` | `undefined` | Cape texture URL (64×32 PNG). When set, a GPU-animated cape renders behind the body. Leave `undefined` to disable. |
 | `scale` | `number` | `1` | Uniform model scale factor. |
 | `resetId` | `number` | `0` | Rotation reset trigger — pass a Svelte 5 `$state`; when it changes, the orbital camera resets to default. |
-| `time` | `number \| undefined` | `undefined` | External animation time in seconds. When provided, drives all animations from this value instead of the internal clock (useful for pausing/seeking/syncing). Leave `undefined` for auto. |
+| `time` | `number \| undefined` | `undefined` | Animation time override in seconds. When set, drives all animations from this value instead of the internal clock — useful for pausing, seeking, or syncing with external timelines. Leave `undefined` for auto. |
 
 ## The Shader
 
-Shader is the core of `tiny-skin-viewer`. Most of its code lies in the shader. (And that's the reason why we dare to claim it "tiny")
+The shader is the core of `tiny-skin-viewer` — most of the package's code lives there. (Hence the name.)
 
 The shader file `src/lib/shader.wgsl` **is generated** by `scripts/generate-shader.ts`. You should only edit the shader indirectly through the generator.
 
@@ -140,7 +140,7 @@ deno task package
 
 ### Formatting before pushing
 
-Deno lacks support for Svelte, so we use `oxfmt` to format code. It's in `devDependencies` so it should be available if you have installed npm dependencies.
+`oxfmt` is used for code formatting (Deno's built-in formatter doesn't support Svelte). It's listed in `devDependencies`, so it's available once npm dependencies are installed.
 
 ```
 deno x oxfmt
