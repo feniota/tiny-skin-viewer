@@ -76,8 +76,12 @@
       const facing = Math.cos(rotY) >= 0 ? 1 : -1;
       rotX = Math.max(-1.5, Math.min(1.5, rotX - dy * 0.005 * facing));
     });
-    addEventListener("pointerup", () => { dragging = false; });
-    addEventListener("pointercancel", () => { dragging = false; });
+    addEventListener("pointerup", () => {
+      dragging = false;
+    });
+    addEventListener("pointercancel", () => {
+      dragging = false;
+    });
 
     try {
       const gpu = navigator.gpu;
