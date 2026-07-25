@@ -1,12 +1,4 @@
 # Publish to JSR (OIDC) and npm (provenance) on every version tag.
-#
-# npm requires a manual first publish (`npm publish`) to establish the
-# package.  After that, OIDC + provenance works automatically.
-#
-# Setup:
-#   1. jsr.io → Settings → Linked Accounts → link GitHub Actions
-#   2. npm → Package → Settings → "Connect to GitHub" (one-time)
-#   3. Tag:  git tag v0.1.3 && git push --tags
 
 name: publish
 
@@ -19,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # ← OIDC for both JSR and npm provenance
+      id-token: write   # ← OIDC for JSR + npm provenance
 
     steps:
       - uses: actions/checkout@v4
@@ -33,13 +25,13 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
-      - name: Cache deps & build
-        run: |
-          deno ci
-          deno task package
+      - name: Cache deps
+        run: deno ci
 
       - name: Publish to JSR
         run: deno publish
 
-      - name: Publish to npm (with provenance)
-        run: npm publish --provenance
+      - name: Build & publish to npm
+        run: |
+          deno task package
+          npm publish --provenance
