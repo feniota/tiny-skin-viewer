@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { type SkinViewerProps } from "./index.ts";
-  import shaderCode from "./shader.ts";
+  import type { SkinViewerProps } from "./index";
+  import shaderCode from "./shader";
 
   let canvas = $state<HTMLCanvasElement | null>(null);
   let raf = $state(0);
