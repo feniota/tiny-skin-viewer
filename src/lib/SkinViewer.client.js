@@ -10,7 +10,7 @@ export default function SkinViewer($$anchor, $$props) {
 	let canvas = $.state(null);
 	let raf = $.state(0);
 	let rotY = $.state(0);
-	let rotX = $.state(0.3);
+	let rotX = $.state(0);
 
 	let isSlim = $.prop($$props, 'isSlim', 3, false),
 		scale = $.prop($$props, 'scale', 3, 1),
@@ -24,7 +24,7 @@ export default function SkinViewer($$anchor, $$props) {
 	$.user_effect(() => {
 		void resetId(); // track
 		$.set(rotY, 0);
-		$.set(rotX, 0.3);
+		$.set(rotX, 0);
 	});
 
 	let dragging = false;
@@ -86,7 +86,11 @@ export default function SkinViewer($$anchor, $$props) {
 			$.set(rotX, Math.max(-1.5, Math.min(1.5, $.get(rotX) - dy * 0.005 * facing)), true);
 		});
 
-		cvs.addEventListener("pointerup", () => {
+		addEventListener("pointerup", () => {
+			dragging = false;
+		});
+
+		addEventListener("pointercancel", () => {
 			dragging = false;
 		});
 
@@ -148,6 +152,7 @@ export default function SkinViewer($$anchor, $$props) {
 						}
 					]
 				},
+				multisample: { count: 4 },
 				depthStencil: {
 					format: "depth24plus",
 					depthWriteEnabled: true,
@@ -169,18 +174,29 @@ export default function SkinViewer($$anchor, $$props) {
 			});
 
 			let depthTexture;
+			let msaaTexture;
 
-			function ensureDepth(w, h) {
+			function ensureTextures(w, h) {
 				if (depthTexture) depthTexture.destroy();
 
 				depthTexture = device.createTexture({
 					size: [w, h],
+					sampleCount: 4,
 					format: "depth24plus",
+					usage: GPUTextureUsage.RENDER_ATTACHMENT
+				});
+
+				if (msaaTexture) msaaTexture.destroy();
+
+				msaaTexture = device.createTexture({
+					size: [w, h],
+					sampleCount: 4,
+					format,
 					usage: GPUTextureUsage.RENDER_ATTACHMENT
 				});
 			}
 
-			ensureDepth(cvs.width, cvs.height);
+			ensureTextures(cvs.width, cvs.height);
 
 			const ubuf = new Float32Array(8);
 
@@ -199,7 +215,8 @@ export default function SkinViewer($$anchor, $$props) {
 				const pass = encoder.beginRenderPass({
 					colorAttachments: [
 						{
-							view: ctx.getCurrentTexture().createView(),
+							view: msaaTexture.createView(),
+							resolveTarget: ctx.getCurrentTexture().createView(),
 							loadOp: "clear",
 							storeOp: "store",
 							clearValue: { r: 0, g: 0, b: 0, a: 0 }

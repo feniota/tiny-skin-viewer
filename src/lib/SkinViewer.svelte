@@ -6,7 +6,7 @@
   let raf = $state(0);
 
   let rotY = $state(0);
-  let rotX = $state(0.3);
+  let rotX = $state(0);
 
   let {
     isSlim = false,
@@ -22,7 +22,7 @@
   $effect(() => {
     void resetId; // track
     rotY = 0;
-    rotX = 0.3;
+    rotX = 0;
   });
 
   let dragging = false;
@@ -76,9 +76,8 @@
       const facing = Math.cos(rotY) >= 0 ? 1 : -1;
       rotX = Math.max(-1.5, Math.min(1.5, rotX - dy * 0.005 * facing));
     });
-    cvs.addEventListener("pointerup", () => {
-      dragging = false;
-    });
+    addEventListener("pointerup", () => { dragging = false; });
+    addEventListener("pointercancel", () => { dragging = false; });
 
     try {
       const gpu = navigator.gpu;
