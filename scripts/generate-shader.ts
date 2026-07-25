@@ -21,10 +21,10 @@
 
 // ── constants ────────────────────────────────────────────────────
 
-const PX = 1 / 16;       // 1 pixel → block units
-const Y0 = 16 * PX;      // vertical centering (model is 32 px tall)
-const T  = 1 / 64;       // 1 texture pixel → normalised UV
-const PIVOT_Y = 6 * PX;  // arm/leg pivot Y
+const PX = 1 / 16; // 1 pixel → block units
+const Y0 = 16 * PX; // vertical centering (model is 32 px tall)
+const T = 1 / 64; // 1 texture pixel → normalised UV
+const PIVOT_Y = 6 * PX; // arm/leg pivot Y
 const OVERLAY_EXT = 0.25; // pixels outward per face (extends both sides)
 
 // ── helpers ──────────────────────────────────────────────────────
@@ -33,12 +33,12 @@ const OVERLAY_EXT = 0.25; // pixels outward per face (extends both sides)
 function boxUV(u: number, v: number, w: number, h: number, d: number) {
   type Rect = [number, number, number, number];
   return <const>[
-    [u + d,       v + d, u + d + w,     v + d + h] satisfies Rect, // 0 +Z front   = South
+    [u + d, v + d, u + d + w, v + d + h] satisfies Rect, // 0 +Z front   = South
     [u + d + w + d, v + d, u + d + w + d + w, v + d + h] satisfies Rect, // 1 -Z back    = North
-    [u + d,       v,     u + d + w,     v + d]     satisfies Rect, // 2 +Y top     = Up
-    [u + d + w,   v,     u + d + w + d, v + d]     satisfies Rect, // 3 -Y bottom  = Down
-    [u + d + w,   v + d, u + d + w + d, v + d + h] satisfies Rect, // 4 +X right   = East
-    [u,           v + d, u + d,         v + d + h] satisfies Rect, // 5 -X left    = West
+    [u + d, v, u + d + w, v + d] satisfies Rect, // 2 +Y top     = Up
+    [u + d + w, v, u + d + w + d, v + d] satisfies Rect, // 3 -Y bottom  = Down
+    [u + d + w, v + d, u + d + w + d, v + d + h] satisfies Rect, // 4 +X right   = East
+    [u, v + d, u + d, v + d + h] satisfies Rect, // 5 -X left    = West
   ];
 }
 
@@ -46,43 +46,159 @@ function boxUV(u: number, v: number, w: number, h: number, d: number) {
 
 interface Part {
   name: string;
-  px: number; py: number; pz: number;  // centre (Minecraft pixel coords)
-  sx: number; sy: number; sz: number;  // model extents (pixels, expanded for overlay)
-  uvW: number; uvH: number; uvD: number; // UV extents (always base dimensions)
-  phase: number;                       // 0 = static, ±1 = ±sin(time)
-  u: number; v: number;               // texOffs origin (64×64 space)
+  px: number;
+  py: number;
+  pz: number; // centre (Minecraft pixel coords)
+  sx: number;
+  sy: number;
+  sz: number; // model extents (pixels, expanded for overlay)
+  uvW: number;
+  uvH: number;
+  uvD: number; // UV extents (always base dimensions)
+  phase: number; // 0 = static, ±1 = ±sin(time)
+  u: number;
+  v: number; // texOffs origin (64×64 space)
 }
 
-type PartDef = Pick<Part, "name" | "px" | "py" | "pz" | "sx" | "sy" | "sz" | "uvW" | "uvH" | "uvD" | "phase"> & {
-  u: number; v: number;                 // base texOffs
-  overlayUv: [number, number];          // overlay texOffs
+type PartDef = Pick<
+  Part,
+  "name" | "px" | "py" | "pz" | "sx" | "sy" | "sz" | "uvW" | "uvH" | "uvD" | "phase"
+> & {
+  u: number;
+  v: number; // base texOffs
+  overlayUv: [number, number]; // overlay texOffs
 };
 
 const partDefs: PartDef[] = [
   //  name         centre (px)       size (px)       UV dims        phase  baseU  baseV  ovU  ovV
-  { name: "head",      px: 0, py:28, pz: 0, sx: 8, sy: 8, sz: 8, uvW:8, uvH:8, uvD:8, phase: 0, u: 0, v: 0, overlayUv: [32, 0] },
-  { name: "body",      px: 0, py:18, pz: 0, sx: 8, sy:12, sz: 4, uvW:8, uvH:12, uvD:4, phase: 0, u:16, v:16, overlayUv: [16,32] },
-  { name: "right_arm", px:-6, py:18, pz: 0, sx: 4, sy:12, sz: 4, uvW:4, uvH:12, uvD:4, phase: 1, u:40, v:16, overlayUv: [40,32] },
-  { name: "left_arm",  px: 6, py:18, pz: 0, sx: 4, sy:12, sz: 4, uvW:4, uvH:12, uvD:4, phase:-1, u:32, v:48, overlayUv: [48,48] },
-  { name: "right_leg", px:-2, py: 6, pz: 0, sx: 4, sy:12, sz: 4, uvW:4, uvH:12, uvD:4, phase:-1, u: 0, v:16, overlayUv: [ 0,32] },
-  { name: "left_leg",  px: 2, py: 6, pz: 0, sx: 4, sy:12, sz: 4, uvW:4, uvH:12, uvD:4, phase: 1, u:16, v:48, overlayUv: [ 0,48] },
+  {
+    name: "head",
+    px: 0,
+    py: 28,
+    pz: 0,
+    sx: 8,
+    sy: 8,
+    sz: 8,
+    uvW: 8,
+    uvH: 8,
+    uvD: 8,
+    phase: 0,
+    u: 0,
+    v: 0,
+    overlayUv: [32, 0],
+  },
+  {
+    name: "body",
+    px: 0,
+    py: 18,
+    pz: 0,
+    sx: 8,
+    sy: 12,
+    sz: 4,
+    uvW: 8,
+    uvH: 12,
+    uvD: 4,
+    phase: 0,
+    u: 16,
+    v: 16,
+    overlayUv: [16, 32],
+  },
+  {
+    name: "right_arm",
+    px: -6,
+    py: 18,
+    pz: 0,
+    sx: 4,
+    sy: 12,
+    sz: 4,
+    uvW: 4,
+    uvH: 12,
+    uvD: 4,
+    phase: 1,
+    u: 40,
+    v: 16,
+    overlayUv: [40, 32],
+  },
+  {
+    name: "left_arm",
+    px: 6,
+    py: 18,
+    pz: 0,
+    sx: 4,
+    sy: 12,
+    sz: 4,
+    uvW: 4,
+    uvH: 12,
+    uvD: 4,
+    phase: -1,
+    u: 32,
+    v: 48,
+    overlayUv: [48, 48],
+  },
+  {
+    name: "right_leg",
+    px: -2,
+    py: 6,
+    pz: 0,
+    sx: 4,
+    sy: 12,
+    sz: 4,
+    uvW: 4,
+    uvH: 12,
+    uvD: 4,
+    phase: -1,
+    u: 0,
+    v: 16,
+    overlayUv: [0, 32],
+  },
+  {
+    name: "left_leg",
+    px: 2,
+    py: 6,
+    pz: 0,
+    sx: 4,
+    sy: 12,
+    sz: 4,
+    uvW: 4,
+    uvH: 12,
+    uvD: 4,
+    phase: 1,
+    u: 16,
+    v: 48,
+    overlayUv: [0, 48],
+  },
 ];
 
 // Build combined parts array: indices 0-5 = base, 6-11 = overlay
 const baseParts: Part[] = partDefs.map(d => ({
-  name: d.name, px: d.px, py: d.py, pz: d.pz,
-  sx: d.sx, sy: d.sy, sz: d.sz,
-  uvW: d.uvW, uvH: d.uvH, uvD: d.uvD,
-  phase: d.phase, u: d.u, v: d.v,
+  name: d.name,
+  px: d.px,
+  py: d.py,
+  pz: d.pz,
+  sx: d.sx,
+  sy: d.sy,
+  sz: d.sz,
+  uvW: d.uvW,
+  uvH: d.uvH,
+  uvD: d.uvD,
+  phase: d.phase,
+  u: d.u,
+  v: d.v,
 }));
 const overlayParts: Part[] = partDefs.map(d => ({
-  name: d.name + "_overlay", px: d.px, py: d.py, pz: d.pz,
+  name: d.name + "_overlay",
+  px: d.px,
+  py: d.py,
+  pz: d.pz,
   sx: d.sx + OVERLAY_EXT * 2, // model expands
   sy: d.sy + OVERLAY_EXT * 2,
   sz: d.sz + OVERLAY_EXT * 2,
-  uvW: d.uvW, uvH: d.uvH, uvD: d.uvD, // UV stays base size
+  uvW: d.uvW,
+  uvH: d.uvH,
+  uvD: d.uvD, // UV stays base size
   phase: d.phase,
-  u: d.overlayUv[0], v: d.overlayUv[1],
+  u: d.overlayUv[0],
+  v: d.overlayUv[1],
 }));
 const parts = [...baseParts, ...overlayParts];
 
@@ -90,23 +206,47 @@ const parts = [...baseParts, ...overlayParts];
 
 const CUBE: [number, number, number][] = [
   // +Z front (face 0)
-  [-0.5, -0.5, 0.5], [0.5, -0.5, 0.5], [0.5, 0.5, 0.5],
-  [-0.5, -0.5, 0.5], [0.5, 0.5, 0.5], [-0.5, 0.5, 0.5],
+  [-0.5, -0.5, 0.5],
+  [0.5, -0.5, 0.5],
+  [0.5, 0.5, 0.5],
+  [-0.5, -0.5, 0.5],
+  [0.5, 0.5, 0.5],
+  [-0.5, 0.5, 0.5],
   // -Z back (face 1)
-  [0.5, -0.5, -0.5], [-0.5, -0.5, -0.5], [-0.5, 0.5, -0.5],
-  [0.5, -0.5, -0.5], [-0.5, 0.5, -0.5], [0.5, 0.5, -0.5],
+  [0.5, -0.5, -0.5],
+  [-0.5, -0.5, -0.5],
+  [-0.5, 0.5, -0.5],
+  [0.5, -0.5, -0.5],
+  [-0.5, 0.5, -0.5],
+  [0.5, 0.5, -0.5],
   // +Y top (face 2)
-  [-0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, -0.5],
-  [-0.5, 0.5, 0.5], [0.5, 0.5, -0.5], [-0.5, 0.5, -0.5],
+  [-0.5, 0.5, 0.5],
+  [0.5, 0.5, 0.5],
+  [0.5, 0.5, -0.5],
+  [-0.5, 0.5, 0.5],
+  [0.5, 0.5, -0.5],
+  [-0.5, 0.5, -0.5],
   // -Y bottom (face 3)
-  [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5], [0.5, -0.5, 0.5],
-  [-0.5, -0.5, -0.5], [0.5, -0.5, 0.5], [-0.5, -0.5, 0.5],
+  [-0.5, -0.5, -0.5],
+  [0.5, -0.5, -0.5],
+  [0.5, -0.5, 0.5],
+  [-0.5, -0.5, -0.5],
+  [0.5, -0.5, 0.5],
+  [-0.5, -0.5, 0.5],
   // +X right (face 4)
-  [0.5, -0.5, 0.5], [0.5, -0.5, -0.5], [0.5, 0.5, -0.5],
-  [0.5, -0.5, 0.5], [0.5, 0.5, -0.5], [0.5, 0.5, 0.5],
+  [0.5, -0.5, 0.5],
+  [0.5, -0.5, -0.5],
+  [0.5, 0.5, -0.5],
+  [0.5, -0.5, 0.5],
+  [0.5, 0.5, -0.5],
+  [0.5, 0.5, 0.5],
   // -X left (face 5)
-  [-0.5, -0.5, -0.5], [-0.5, -0.5, 0.5], [-0.5, 0.5, 0.5],
-  [-0.5, -0.5, -0.5], [-0.5, 0.5, 0.5], [-0.5, 0.5, -0.5],
+  [-0.5, -0.5, -0.5],
+  [-0.5, -0.5, 0.5],
+  [-0.5, 0.5, 0.5],
+  [-0.5, -0.5, -0.5],
+  [-0.5, 0.5, 0.5],
+  [-0.5, 0.5, -0.5],
 ];
 
 // ── derived values ────────────────────────────────────────────────
@@ -125,7 +265,20 @@ console.log(`Generating shader for ${partCount} body parts…`);
 
 // Part names for WGSL constant arrays
 const uvName = (i: number) => {
-  const names = ["head","body","rarm","larm","rleg","lleg","head_ov","body_ov","rarm_ov","larm_ov","rleg_ov","lleg_ov"];
+  const names = [
+    "head",
+    "body",
+    "rarm",
+    "larm",
+    "rleg",
+    "lleg",
+    "head_ov",
+    "body_ov",
+    "rarm_ov",
+    "larm_ov",
+    "rleg_ov",
+    "lleg_ov",
+  ];
   return names[i];
 };
 
@@ -146,8 +299,10 @@ const uvBlocks = parts
   .map((p, i) => {
     const uv = partUVs[i];
     const faces = uv
-      .map(([x0, y0, x1, y1]) =>
-        `    FaceUV(vec2f(${uvf(x0)}, ${uvf(y0)}), vec2f(${uvf(x1)}, ${uvf(y1)}))`)
+      .map(
+        ([x0, y0, x1, y1]) =>
+          `    FaceUV(vec2f(${uvf(x0)}, ${uvf(y0)}), vec2f(${uvf(x1)}, ${uvf(y1)}))`,
+      )
       .join(",\n");
     return `const uv_${uvName(i)} = array<FaceUV, 6>(\n${faces}\n);`;
   })
@@ -197,7 +352,7 @@ fn rotate_y(a: f32) -> mat4x4f {
 // ── cube geometry ─────────────────────────────────────────────────
 
 const cube = array<vec3f, ${CUBE.length}>(
-${CUBE.map(([x,y,z]) => `    vec3f(${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)})`).join(",\n")}
+${CUBE.map(([x, y, z]) => `    vec3f(${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)})`).join(",\n")}
 );
 
 const cube_uv = array<vec2f, ${CUBE.length}>(
@@ -310,8 +465,10 @@ fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
 // ── write files ───────────────────────────────────────────────────
 
 await Deno.writeTextFile("src/lib/shader.wgsl", wgsl);
-await Deno.writeTextFile("src/lib/shader.ts",
-  `// Auto-generated by scripts/generate-shader.ts\nconst shaderCode = ${JSON.stringify(wgsl)};\nexport default shaderCode;\n`);
+await Deno.writeTextFile(
+  "src/lib/shader.ts",
+  `// Auto-generated by scripts/generate-shader.ts\nconst shaderCode = ${JSON.stringify(wgsl)};\nexport default shaderCode;\n`,
+);
 
-console.log(`\n✅  src/lib/shader.wgsl  (${(wgsl.length/1024).toFixed(1)} KB)`);
+console.log(`\n✅  src/lib/shader.wgsl  (${(wgsl.length / 1024).toFixed(1)} KB)`);
 console.log(`✅  src/lib/shader.ts   (${partCount} parts, ${totalVertices} verts)`);

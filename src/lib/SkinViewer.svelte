@@ -41,7 +41,10 @@
     const texture = device.createTexture({
       size: [bitmap.width, bitmap.height],
       format: "rgba8unorm",
-      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+      usage:
+        GPUTextureUsage.TEXTURE_BINDING |
+        GPUTextureUsage.COPY_DST |
+        GPUTextureUsage.RENDER_ATTACHMENT,
     });
     device.queue.copyExternalImageToTexture({ source: bitmap }, { texture }, [
       bitmap.width,
@@ -108,21 +111,23 @@
         vertex: { module: shader },
         fragment: {
           module: shader,
-          targets: [{
-            format,
-            blend: {
-              color: {
-                srcFactor: "src-alpha",
-                dstFactor: "one-minus-src-alpha",
-                operation: "add",
-              },
-              alpha: {
-                srcFactor: "one",
-                dstFactor: "one-minus-src-alpha",
-                operation: "add",
+          targets: [
+            {
+              format,
+              blend: {
+                color: {
+                  srcFactor: "src-alpha",
+                  dstFactor: "one-minus-src-alpha",
+                  operation: "add",
+                },
+                alpha: {
+                  srcFactor: "one",
+                  dstFactor: "one-minus-src-alpha",
+                  operation: "add",
+                },
               },
             },
-          }],
+          ],
         },
         depthStencil: { format: "depth24plus", depthWriteEnabled: true, depthCompare: "less" },
       });
@@ -182,7 +187,7 @@
         pass.setPipeline(pipeline);
         pass.setBindGroup(0, bindGroup0);
         pass.setBindGroup(1, bindGroup1);
-        pass.draw(216, 1, 0, 0);   // base layer: 6 parts × 36 verts
+        pass.draw(216, 1, 0, 0); // base layer: 6 parts × 36 verts
         pass.draw(216, 1, 216, 0); // overlay layer: 6 parts × 36 verts
         pass.end();
         device.queue.submit([encoder.finish()]);
