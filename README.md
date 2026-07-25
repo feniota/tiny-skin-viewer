@@ -1,6 +1,6 @@
 # TinySkinViewer
 
-[![JSR](https://jsr.io/badges/@feniota/tiny-skin-viewer)](https://jsr.io/@feniota/tiny-skin-viewer)
+[![JSR](https://jsr.io/badges/@feniota/tiny-skin-viewer)](https://jsr.io/@feniota/tiny-skin-viewer) ![NPM Version](https://img.shields.io/npm/v/tiny-skin-viewer)
 
 GPU-driven Minecraft skin viewer. All rendering — model transform, limb animation, skin sampling, scale — runs in a single WGSL shader. CPU only feeds 5 floats per frame.
 
@@ -18,7 +18,7 @@ Install via your preferred registry:
 
 ```bash
 # JSR
-deno add @feniota/tiny-skin-viewer
+deno add jsr:@feniota/tiny-skin-viewer
 
 # npm / pnpm / yarn
 npm install tiny-skin-viewer
@@ -31,7 +31,7 @@ yarn add tiny-skin-viewer
 ```svelte
 <script>
   import { SkinViewer } from "tiny-skin-viewer";
-  // JSR 用户:  import { SkinViewer } from "@feniota/tiny-skin-viewer";
+  // for JSR:  import { SkinViewer } from "@feniota/tiny-skin-viewer";
 </script>
 
 <SkinViewer skinUrl="/steve.png" isSlim scale={1.5} resetId={resetCount} />
