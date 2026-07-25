@@ -6,6 +6,9 @@ interface SkinViewerProps {
   skinUrl?: string;
   /** true = Slim (Alex, 3 px), false = Classic (Steve, 4 px) (default: false) */
   isSlim?: boolean;
+  /** Cape texture URL — when set, a GPU-driven cape renders behind the body.
+   *  Standard cape textures are 64×32 px (leave undefined to disable). */
+  capeUrl?: string;
   /** Uniform model scale factor (default: 1) */
   scale?: number;
   /** Rotation-reset trigger (Svelte 5 `$state`, default: 0) */

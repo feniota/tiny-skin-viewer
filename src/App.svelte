@@ -1,17 +1,28 @@
-<script lang="ts">
-  // @ts-ignore: idk why ts is mad about this
-  import { SkinViewer } from "./lib/index.ts";
+<script>
+// @ts-nocheck
+import { SkinViewer } from "./lib/index";
 
-  let scale = $state(1);
+let scale = $state(1);
+let capeUrl = $state(undefined);
+let resetId = $state(0);
+
+function reset() {
+	scale = 1;
+	resetId++;
+}
 </script>
 
 <div class="toolbar">
   <button class="btn" onclick={() => (scale = Math.max(0.1, scale - 0.1))}>−</button>
   <span class="val">{scale.toFixed(1)}</span>
   <button class="btn" onclick={() => (scale += 0.1)}>+</button>
+  <button class="btn" onclick={() => (capeUrl = capeUrl ? undefined : "/pancape.png")} title="Toggle cape">
+    🦸
+  </button>
+  <button class="btn" onclick={reset} title="Reset view">↺</button>
 </div>
 
-<SkinViewer {scale} />
+<SkinViewer {scale} {capeUrl} {resetId} />
 
 <style>
   .toolbar {
