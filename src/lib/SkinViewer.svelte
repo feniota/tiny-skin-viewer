@@ -11,8 +11,11 @@
   let {
     isSlim = false,
     scale = 1,
-    skinUrl = "/Template_classic.png",
+    skinUrl = "https://assets.ferris.love/phenocryst/steve.png",
     resetId = 0,
+    class: className = "",
+    width = 800,
+    height = 600,
   }: SkinViewerProps = $props();
 
   // reset rotation when resetId changes
@@ -35,6 +38,7 @@
 
   async function loadTexture(device: GPUDevice, url: string) {
     const img = new Image();
+    img.crossOrigin = "anonymous";
     img.src = url;
     await img.decode();
     const bitmap = await createImageBitmap(img);
@@ -54,8 +58,8 @@
   }
 
   async function init(cvs: HTMLCanvasElement) {
-    cvs.width = 800;
-    cvs.height = 600;
+    cvs.width = width;
+    cvs.height = height;
 
     cvs.addEventListener("pointerdown", e => {
       dragging = true;
@@ -165,6 +169,7 @@
         ubuf[2] = rotX;
         ubuf[3] = isSlim ? 1 : 0;
         ubuf[4] = scale;
+        ubuf[5] = width / height;
         device.queue.writeBuffer(uniformBuffer, 0, ubuf);
 
         const encoder = device.createCommandEncoder();
@@ -199,7 +204,7 @@
   }
 </script>
 
-<canvas bind:this={canvas}></canvas>
+<canvas bind:this={canvas} class={className}></canvas>
 
 <style>
   canvas {

@@ -17,10 +17,10 @@
     "README.md"
   ],
   "type": "module",
-  "svelte": "./dist/SkinViewer.svelte",
+  "svelte": "./dist/index.js",
   "exports": {
     ".": {
-      "svelte": "./dist/SkinViewer.svelte",
+      "svelte": "./dist/index.js",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },

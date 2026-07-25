@@ -5,6 +5,9 @@ interface SkinViewerProps {
   isSlim?: boolean;
   scale?: number;
   resetId?: number;
+  class?: string;
+  width?: number;
+  height?: number;
 }
 
 declare const SkinViewer: Component<SkinViewerProps>;

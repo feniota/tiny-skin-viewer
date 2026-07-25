@@ -2,7 +2,7 @@ import 'svelte/internal/disclose-version';
 import * as $ from 'svelte/internal/client';
 import shaderCode from "./shader";
 
-var root = $.from_html(`<canvas class="svelte-1q7go3z"></canvas>`);
+var root = $.from_html(`<canvas></canvas>`);
 
 export default function SkinViewer($$anchor, $$props) {
 	$.push($$props, true);
@@ -14,8 +14,11 @@ export default function SkinViewer($$anchor, $$props) {
 
 	let isSlim = $.prop($$props, 'isSlim', 3, false),
 		scale = $.prop($$props, 'scale', 3, 1),
-		skinUrl = $.prop($$props, 'skinUrl', 3, "/Template_classic.png"),
-		resetId = $.prop($$props, 'resetId', 3, 0);
+		skinUrl = $.prop($$props, 'skinUrl', 3, "https://assets.ferris.love/phenocryst/steve.png"),
+		resetId = $.prop($$props, 'resetId', 3, 0),
+		className = $.prop($$props, 'class', 3, ""),
+		width = $.prop($$props, 'width', 3, 800),
+		height = $.prop($$props, 'height', 3, 600);
 
 	// reset rotation when resetId changes
 	$.user_effect(() => {
@@ -41,6 +44,7 @@ export default function SkinViewer($$anchor, $$props) {
 	async function loadTexture(device, url) {
 		const img = new Image();
 
+		img.crossOrigin = "anonymous";
 		img.src = url;
 		await img.decode();
 
@@ -58,8 +62,8 @@ export default function SkinViewer($$anchor, $$props) {
 	}
 
 	async function init(cvs) {
-		cvs.width = 800;
-		cvs.height = 600;
+		cvs.width = width();
+		cvs.height = height();
 
 		cvs.addEventListener("pointerdown", (e) => {
 			dragging = true;
@@ -187,6 +191,7 @@ export default function SkinViewer($$anchor, $$props) {
 				ubuf[2] = $.get(rotX);
 				ubuf[3] = isSlim() ? 1 : 0;
 				ubuf[4] = scale();
+				ubuf[5] = width() / height();
 				device.queue.writeBuffer(uniformBuffer, 0, ubuf);
 
 				const encoder = device.createCommandEncoder();
@@ -226,6 +231,7 @@ export default function SkinViewer($$anchor, $$props) {
 	var canvas_1 = root();
 
 	$.bind_this(canvas_1, ($$value) => $.set(canvas, $$value), () => $.get(canvas));
+	$.template_effect(() => $.set_class(canvas_1, 1, $.clsx(className()), 'svelte-1q7go3z'));
 	$.append($$anchor, canvas_1);
 	$.pop();
 }
