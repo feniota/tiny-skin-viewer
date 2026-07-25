@@ -1,17 +1,17 @@
-# Auto-format all supported files with oxfmt on every push.
-# If formatting changes are made, they are committed back to the branch.
+# Check formatting with oxfmt on every push.
+# Fails if any file is not properly formatted.
 
 name: format
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   format:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -20,17 +20,7 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Cache deps & format
+      - name: Check formatting
         run: |
           deno ci
-          deno x oxfmt --write .
-
-      - name: Commit changes
-        run: |
-          if ! git diff --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add -A
-            git commit -m "style: auto-format with oxfmt"
-            git push
-          fi
+          deno x oxfmt --check .
