@@ -3,13 +3,13 @@
 
   // ── JSR metadata ────────────────────────────────────────────
   "name": "@feniota/tiny-skin-viewer",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "Tiny GPU-driven Minecraft skin viewer — WebGPU + Svelte 5, all rendering in a single WGSL shader, no dependencies.",
   "exports": {
-    ".": "./src/lib/index.ts",
+    ".": "./src/lib/index.ts"
   },
   "publish": {
-    "include": ["src/lib/**/*", "README.md", "LICENSE"],
+    "include": ["src/lib/**/*", "README.md", "LICENSE"]
   },
 
   // ── Local development tasks ─────────────────────────────────
@@ -18,7 +18,7 @@
     "build": "deno run -A npm:vite build",
     "preview": "deno run -A npm:vite preview",
     "generate-shader": "deno run --allow-write scripts/generate-shader.ts",
-    "package": "deno run -A npm:@sveltejs/package",
+    "package": "deno run -A npm:@sveltejs/package"
   },
 
   // ── Import map (npm compatibility) ──────────────────────────
@@ -27,6 +27,6 @@
     "@webgpu/types": "npm:@webgpu/types@^0.1.71",
     "@sveltejs/vite-plugin-svelte": "npm:@sveltejs/vite-plugin-svelte@^7",
     "@sveltejs/package": "npm:@sveltejs/package@^2.5",
-    "vite": "npm:vite@^8",
-  },
+    "vite": "npm:vite@^8"
+  }
 }

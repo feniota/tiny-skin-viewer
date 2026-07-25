@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write   # ← OIDC for both JSR and npm provenance
+      id-token: write # ← OIDC for both JSR and npm provenance
 
     steps:
       - uses: actions/checkout@v4
