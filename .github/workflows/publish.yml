@@ -1,37 +1,58 @@
-# Publish to JSR (OIDC) and npm (provenance) on every version tag.
+# Publish to JSR (OIDC) and npm (provenance).
+# Triggers automatically on tags, or can be run manually to retry one
+# registry without bumping the version.
 
 name: publish
 
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which registry to publish to"
+        type: choice
+        options: [all, jsr, npm]
+        default: all
 
 jobs:
-  publish:
+  jsr:
+    if: |
+      github.event_name == 'push'
+      || inputs.target == 'all'
+      || inputs.target == 'jsr'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write   # ← OIDC for JSR + npm provenance
-
+      id-token: write
     steps:
       - uses: actions/checkout@v4
-
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      - run: deno ci
+      - run: deno publish
 
+  npm:
+    if: |
+      github.event_name == 'push'
+      || inputs.target == 'all'
+      || inputs.target == 'npm'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-
-      - name: Cache deps
-        run: deno ci
-
-      - name: Publish to JSR
-        run: deno publish
-
-      - name: Build & publish to npm
-        run: |
-          deno task package
-          npm publish --provenance
+      - run: deno ci
+      - run: deno task package
+      - name: Upgrade npm (provenance needs npm ≥ 11.5.1)
+        run: npm install -g npm@latest
+      - run: npm publish --provenance
