@@ -10,6 +10,7 @@
   let {
     isSlim = false,
     capeUrl = undefined as string | undefined,
+    time = undefined as number | undefined,
     scale = 1,
     skinUrl = "https://assets.ferris.love/phenocryst/steve.png",
     resetId = 0,
@@ -182,15 +183,16 @@
 
       const ubuf = new Float32Array(8);
 
-      function frame(time: number) {
+      function frame(rafTime: number) {
         raf = requestAnimationFrame(frame);
 
-        ubuf[0] = time * 0.001;
+        ubuf[0] = time ?? rafTime * 0.001;
         ubuf[1] = rotY;
         ubuf[2] = rotX;
         ubuf[3] = isSlim ? 1 : 0;
         ubuf[4] = scale;
-        ubuf[5] = capeUrl ? 1 : 0;
+        ubuf[5] = width / height;
+        ubuf[6] = capeUrl ? 1 : 0;
         device.queue.writeBuffer(uniformBuffer, 0, ubuf);
 
         const encoder = device.createCommandEncoder();

@@ -43,6 +43,17 @@ export interface SkinViewerProps {
   capeUrl?: string;
 
   /**
+   * External animation time in seconds.
+   *
+   * When provided, drives all animations from this value instead of the
+   * internal requestAnimationFrame clock.  Useful for pausing, seeking,
+   * or syncing with external timelines.  Leave `undefined` for auto.
+   *
+   * @default undefined
+   */
+  time?: number;
+
+  /**
    * Uniform model scale factor.
    *
    * @default 1
