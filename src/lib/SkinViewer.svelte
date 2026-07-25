@@ -25,7 +25,7 @@ You can detect this separately and show a fallback, e.g.,
 <script>
   import { onMount } from "svelte";
 
-  let webgpu: boolean = $state(false);
+  let webgpu = $state(false);
 
   onMount(async () => {
     // navigator.gpu may be undefined in insecure contexts
