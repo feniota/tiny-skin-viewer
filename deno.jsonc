@@ -6,10 +6,10 @@
   "version": "0.1.6",
   "description": "Tiny GPU-driven Minecraft skin viewer — WebGPU + Svelte 5, all rendering in a single WGSL shader, no dependencies.",
   "exports": {
-    ".": "./src/lib/jsr.ts"
+    ".": "./src/jsr.ts"
   },
   "publish": {
-    "include": ["src/lib/**/*", "README.md", "LICENSE"]
+    "include": ["src/lib/**/*", "src/client/**/*", "src/jsr.ts", "README.md", "LICENSE"]
   },
 
   // ── Local development tasks ─────────────────────────────────
@@ -19,7 +19,7 @@
     "preview": "deno run -A npm:vite preview",
     "generate-shader": "deno run --allow-write scripts/generate-shader.ts",
     "package": "deno run -A npm:@sveltejs/package",
-    "compile-client": "deno eval 'import{compile}from\"npm:svelte/compiler\";const src=await Deno.readTextFile(\"src/lib/SkinViewer.svelte\");const r=compile(src,{name:\"SkinViewer\",filename:\"SkinViewer.svelte\",generate:\"client\"});await Deno.writeTextFile(\"src/lib/SkinViewer.client.js\",r.js.code);console.log(\"Compiled\",r.js.code.length,\"bytes\");'"
+    "compile-client": "deno eval 'import{compile}from\"npm:svelte/compiler\";const src=await Deno.readTextFile(\"src/lib/SkinViewer.svelte\");const r=compile(src,{name:\"SkinViewer\",filename:\"SkinViewer.svelte\",generate:\"client\"});await Deno.writeTextFile(\"src/client/SkinViewer.client.js\",r.js.code);console.log(\"Compiled\",r.js.code.length,\"bytes\");'"
   },
 
   // ── Import map (npm compatibility) ──────────────────────────

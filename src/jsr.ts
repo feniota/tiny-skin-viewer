@@ -9,5 +9,5 @@
  */
 
 // deno-lint-ignore no-sloppy-imports
-export { default as SkinViewer } from "./SkinViewer.client.js";
-export type { SkinViewerProps } from "./SkinViewer.client.js";
+export { default as SkinViewer } from "./client/SkinViewer.client.js";
+export type { SkinViewerProps } from "./client/SkinViewer.client.js";

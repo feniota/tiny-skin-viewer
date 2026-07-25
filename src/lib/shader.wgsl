@@ -8,9 +8,9 @@ struct VertexOutput {
 
 struct Uniforms {
     time: f32,
-    rotY: f32,
-    rotX: f32,
-    isSlim: f32,
+    rot_y: f32,
+    rot_x: f32,
+    is_slim: f32,
     scale: f32,
     aspect: f32,
 }
@@ -270,7 +270,7 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
     var sz = part.size;
     // Apply slim arm width for base arms (2,3) and overlay arms (8,9)
     if (part_id == 2u || part_id == 3u || part_id == 8u || part_id == 9u) {
-        sz.x *= 1.0 - uniforms.isSlim * 0.25;
+        sz.x *= 1.0 - uniforms.is_slim * 0.25;
     }
     var p = cube[vertex_id] * sz;
 
@@ -285,7 +285,7 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
     }
     p += part.pos;
 
-    let model = mul4(rotate_y(uniforms.rotY), rotate_x(-uniforms.rotX));
+    let model = mul4(rotate_y(uniforms.rot_y), rotate_x(-uniforms.rot_x));
     let pv = mul4(mul4(projection(), view()), model);
 
     let fuv  = cube_uv[vertex_id];
