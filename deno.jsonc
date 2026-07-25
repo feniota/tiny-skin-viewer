@@ -22,6 +22,7 @@
   },
 
   // ── Import map (npm compatibility) ──────────────────────────
+  "nodeModulesDir": "auto",
   "imports": {
     "svelte": "npm:svelte@^5",
     "@webgpu/types": "npm:@webgpu/types@^0.1.71",

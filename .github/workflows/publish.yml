@@ -33,8 +33,10 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
-      - name: Build package
-        run: deno task package
+      - name: Cache deps & build
+        run: |
+          deno ci
+          deno task package
 
       - name: Publish to JSR
         run: deno publish
