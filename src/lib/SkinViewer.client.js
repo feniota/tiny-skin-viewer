@@ -152,7 +152,6 @@ export default function SkinViewer($$anchor, $$props) {
 						}
 					]
 				},
-				multisample: { count: 4 },
 				depthStencil: {
 					format: "depth24plus",
 					depthWriteEnabled: true,
@@ -174,29 +173,18 @@ export default function SkinViewer($$anchor, $$props) {
 			});
 
 			let depthTexture;
-			let msaaTexture;
 
-			function ensureTextures(w, h) {
+			function ensureDepth(w, h) {
 				if (depthTexture) depthTexture.destroy();
 
 				depthTexture = device.createTexture({
 					size: [w, h],
-					sampleCount: 4,
 					format: "depth24plus",
-					usage: GPUTextureUsage.RENDER_ATTACHMENT
-				});
-
-				if (msaaTexture) msaaTexture.destroy();
-
-				msaaTexture = device.createTexture({
-					size: [w, h],
-					sampleCount: 4,
-					format,
 					usage: GPUTextureUsage.RENDER_ATTACHMENT
 				});
 			}
 
-			ensureTextures(cvs.width, cvs.height);
+			ensureDepth(cvs.width, cvs.height);
 
 			const ubuf = new Float32Array(8);
 
@@ -215,8 +203,7 @@ export default function SkinViewer($$anchor, $$props) {
 				const pass = encoder.beginRenderPass({
 					colorAttachments: [
 						{
-							view: msaaTexture.createView(),
-							resolveTarget: ctx.getCurrentTexture().createView(),
+							view: ctx.getCurrentTexture().createView(),
 							loadOp: "clear",
 							storeOp: "store",
 							clearValue: { r: 0, g: 0, b: 0, a: 0 }

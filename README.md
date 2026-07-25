@@ -1,6 +1,6 @@
 # TinySkinViewer
 
-[![JSR](https://jsr.io/badges/@feniota/tiny-skin-viewer)](https://jsr.io/@feniota/tiny-skin-viewer) ![NPM Version](https://img.shields.io/npm/v/tiny-skin-viewer)
+[![JSR](https://jsr.io/badges/@feniota/tiny-skin-viewer)](https://jsr.io/@feniota/tiny-skin-viewer) [![NPM Version](https://img.shields.io/npm/v/tiny-skin-viewer)](https://npmjs.com/package/tiny-skin-viewer)
 
 GPU-driven Minecraft skin viewer. All rendering — model transform, limb animation, skin sampling, scale — runs in a single WGSL shader. CPU only feeds 5 floats per frame.
 
