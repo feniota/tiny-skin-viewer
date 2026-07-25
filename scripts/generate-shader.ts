@@ -349,6 +349,7 @@ struct Uniforms {
     rot_x: f32,
     is_slim: f32,
     scale: f32,
+    aspect: f32,
     has_cape: f32,
 }
 
@@ -427,8 +428,9 @@ fn projection() -> mat4x4f {
     let fov = 3.14159265359 / 3.0;
     let near = 0.1; let far = 10.0;
     let f = 1.0 / tan(fov * 0.5);
+    let aspect = uniforms.aspect;
     return mat4x4f(
-        vec4f(f/1.333,0,0,0), vec4f(0,f,0,0),
+        vec4f(f/aspect,0,0,0), vec4f(0,f,0,0),
         vec4f(0,0,-far/(far-near),-1), vec4f(0,0,-(far*near)/(far-near),0),
     );
 }

@@ -14,6 +14,7 @@ export default function SkinViewer($$anchor, $$props) {
 
 	let isSlim = $.prop($$props, 'isSlim', 3, false),
 		capeUrl = $.prop($$props, 'capeUrl', 3, undefined),
+		time = $.prop($$props, 'time', 3, undefined),
 		scale = $.prop($$props, 'scale', 3, 1),
 		skinUrl = $.prop($$props, 'skinUrl', 3, "https://assets.ferris.love/phenocryst/steve.png"),
 		resetId = $.prop($$props, 'resetId', 3, 0),
@@ -197,14 +198,15 @@ export default function SkinViewer($$anchor, $$props) {
 
 			const ubuf = new Float32Array(8);
 
-			function frame(time) {
+			function frame(rafTime) {
 				$.set(raf, requestAnimationFrame(frame), true);
-				ubuf[0] = time * 0.001;
+				ubuf[0] = time() ?? rafTime * 0.001;
 				ubuf[1] = $.get(rotY);
 				ubuf[2] = $.get(rotX);
 				ubuf[3] = isSlim() ? 1 : 0;
 				ubuf[4] = scale();
-				ubuf[5] = capeUrl() ? 1 : 0;
+				ubuf[5] = width() / height();
+				ubuf[6] = capeUrl() ? 1 : 0;
 				device.queue.writeBuffer(uniformBuffer, 0, ubuf);
 
 				const encoder = device.createCommandEncoder();
