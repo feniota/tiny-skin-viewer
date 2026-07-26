@@ -3,7 +3,7 @@
 
   // ── JSR metadata ────────────────────────────────────────────
   "name": "@feniota/tiny-skin-viewer",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "Tiny GPU-driven Minecraft skin viewer — WebGPU + Svelte 5, all rendering in a single WGSL shader, no dependencies.",
   "exports": {
     ".": "./src/jsr.ts"

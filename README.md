@@ -6,11 +6,11 @@ GPU-driven Minecraft skin viewer. All rendering — model transform, limb animat
 
 ## vs. [bs-community/skinview3d](https://github.com/bs-community/skinview3d)
 
-|                     | skinview3d  | TinySkinViewer        |
-| ------------------- | ----------- | --------------------- |
-| **Runtime payload** | 520 KB      | **~21 KB**¹           |
-| **Dependencies**    | three.js    | **none** (raw WebGPU) |
-| **GPU API**         | WebGL 1 / 2 | WebGPU                |
+|                     | skinview3d | TinySkinViewer        |
+| ------------------- | ---------- | --------------------- |
+| **Runtime payload** | 520 KB     | **~21 KB**¹           |
+| **Dependencies**    | three.js   | **none** (raw WebGPU) |
+| **GPU API**         | WebGL      | WebGPU                |
 
 ¹ 6.2 KB component + 15 KB inline shader (uncompressed, Svelte runtime excluded)
 
@@ -49,12 +49,12 @@ yarn add tiny-skin-viewer
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `skinUrl` | `string` | `"…steve.png"` | Minecraft skin texture URL (64×64 PNG). |
-| `isSlim` | `boolean` | `false` | `true` = Slim / Alex (3 px arms), `false` = Classic / Steve (4 px). |
-| `capeUrl` | `string \| undefined` | `undefined` | Cape texture URL (64×32 PNG). When set, a GPU-animated cape renders behind the body. Leave `undefined` to disable. |
+| `skinUrl` | `string` | Wide arm `steve.png` on a cloud storage | Minecraft skin texture URL (64×64 PNG). |
+| `isSlim` | `boolean` | `false` | `true` = Slim (3 px arms), `false` = Classic (4 px). |
+| `capeUrl` | `string \| undefined` | `undefined` | Cape texture URL (64×32 PNG). When set, a GPU-animated cape renders behind the body. Pass falsy value to disable. |
 | `scale` | `number` | `1` | Uniform model scale factor. |
-| `resetId` | `number` | `0` | Rotation reset trigger — pass a Svelte 5 `$state`; when it changes, the orbital camera resets to default. |
-| `time` | `number \| undefined` | `undefined` | Animation time override in seconds. When set, drives all animations from this value instead of the internal clock — useful for pausing, seeking, or syncing with external timelines. Leave `undefined` for auto. |
+| `resetId` | `number` | `0` | Rotation reset trigger. One should pass a Svelte 5 `$state`. When it changes, the orbital camera resets to default. |
+| `time` | `number \| undefined` | `undefined` | Animation time override in seconds. When set, drives all animations from this value instead of the internal clock, useful for pausing, seeking, or syncing with external timelines. Leave `undefined` for auto. |
 
 ## The Shader
 
@@ -68,17 +68,8 @@ After editing the generator, regenerate both the `.wgsl` and `.ts` shader files:
 deno task generate-shader
 ```
 
-### Build
-
-This package uses `@sveltejs/package` to build the library for npm:
-
-```sh
-deno task package
-# → outputs to dist/
-```
-
 <details>
-    <summary>In-depth shader specifications. You probably don't need these.</summary>
+    <summary>In-depth shader descriptions. You probably don't want to read these.</summary>
 
 ### Bind group layout
 
@@ -138,6 +129,17 @@ deno task package
 
 ## Development
 
+<details>
+
+### Build
+
+This package uses `@sveltejs/package` to build the library for npm:
+
+```sh
+deno task package # SvelteKit packaging
+deno task compile-component # compile .svelte file to ESM
+```
+
 ### Formatting before pushing
 
 `oxfmt` is used for code formatting (Deno's built-in formatter doesn't support Svelte). It's listed in `devDependencies`, so it's available once npm dependencies are installed.
@@ -157,6 +159,10 @@ git tag v0.1.7 && git push --tags
 
 The CI workflow will:
 
-- Build the package via `@sveltejs/package`
-- Publish to **JSR** (`@feniota/tiny-skin-viewer`)
-- Publish to **npm** (`tiny-skin-viewer`)
+- Build the package via `@sveltejs/package` and `svelte/compiler`
+- Publish to JSR as `@feniota/tiny-skin-viewer`
+- Publish to npm as `tiny-skin-viewer`
+
+For detailed explanations please see [Publishing](./PUBLISHING.md).
+
+</details>

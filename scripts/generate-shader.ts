@@ -317,8 +317,8 @@ const partLines = parts
 
 // UV arrays
 const uvBlocks = parts
-  .map((p, i) => {
-    let uv = partUVs[i];
+  .map((_p, i) => {
+    const uv = partUVs[i];
     // Cape uses a separate 64×32 texture → hardcoded UV from cape.txt mapping
     if (i === 6 || i === 13) {
       // User-provided pixel rects on a 64×32 cape texture:

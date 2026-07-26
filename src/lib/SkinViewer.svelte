@@ -6,7 +6,7 @@ A tiny 3D Minecraft skin viewer, rendered with WebGPU.
 ```svelte
 <script>
   let reset = $state(0);
-  let scale = $state(0);
+  let scale = $state(1);
 </script>
 
 <button onclick={() => reset++}>Reset rotation angle</button>
@@ -51,6 +51,20 @@ You can detect this separately and show a fallback, e.g.,
   let raf = $state(0);
   let rotY = $state(0);
   let rotX = $state(0);
+  let gpuReady = $state(false);
+
+  // Non-reactive GPU references (mutated by init/cape reload, read by render loop)
+  let device: GPUDevice | undefined;
+  let ctx: GPUCanvasContext | null | undefined;
+  let format: GPUTextureFormat = "rgba8unorm";
+  let pipeline: GPURenderPipeline | undefined;
+  let uniformBuffer: GPUBuffer | undefined;
+  let skinTexture: GPUTexture | undefined;
+  let capeTexture: GPUTexture | undefined;
+  let sampler: GPUSampler | undefined;
+  let depthTexture: GPUTexture | undefined;
+  let bindGroup0: GPUBindGroup | undefined;
+  let bindGroup1: GPUBindGroup | undefined;
 
   let {
     isSlim = false,
@@ -80,10 +94,21 @@ You can detect this separately and show a fallback, e.g.,
   $effect(() => {
     if (!canvas) return;
     let id = ++initId;
-    void skinUrl;
-    void capeUrl;
+    gpuReady = false;
+    // Intentionally NOT tracking skinUrl/capeUrl — handled by separate effects below
     init(canvas, id);
     return () => cancelAnimationFrame(raf);
+  });
+
+  // Reload textures in-place when skinUrl/capeUrl changes — avoids full GPU reinit
+  $effect(() => {
+    if (!gpuReady) return;
+    reloadSkin();
+  });
+
+  $effect(() => {
+    if (!gpuReady) return;
+    reloadCape();
   });
 
   async function loadTexture(device: GPUDevice, url: string) {
@@ -113,6 +138,46 @@ You can detect this separately and show a fallback, e.g.,
       format: "rgba8unorm",
       usage: GPUTextureUsage.TEXTURE_BINDING,
     });
+  }
+
+  function makeBindGroup1() {
+    return device!.createBindGroup({
+      layout: pipeline!.getBindGroupLayout(1),
+      entries: [
+        { binding: 0, resource: skinTexture!.createView() },
+        { binding: 1, resource: sampler! },
+        { binding: 2, resource: capeTexture!.createView() },
+      ],
+    });
+  }
+
+  async function reloadSkin() {
+    if (skinTexture) skinTexture.destroy();
+    try {
+      skinTexture = await loadTexture(device!, skinUrl);
+    } catch {
+      console.warn("Failed to load skin texture, keeping old one");
+      return;
+    }
+    bindGroup1 = makeBindGroup1();
+  }
+
+  async function reloadCape() {
+    // Destroy the previous cape texture, but NOT the 1×1 placeholder
+    if (capeTexture && capeTexture.width > 1) {
+      capeTexture.destroy();
+    }
+    if (capeUrl) {
+      try {
+        capeTexture = await loadTexture(device!, capeUrl);
+      } catch {
+        console.warn("Failed to load cape texture");
+        capeTexture = placeholderTexture(device!);
+      }
+    } else {
+      capeTexture = placeholderTexture(device!);
+    }
+    bindGroup1 = makeBindGroup1();
   }
 
   async function init(cvs: HTMLCanvasElement, id: number) {
@@ -152,49 +217,42 @@ You can detect this separately and show a fallback, e.g.,
       const adapter = await gpu.requestAdapter();
       if (!adapter) return console.error("WebGPU not available");
       if (id !== initId) return;
-      const device = cachedDevice ?? (await adapter.requestDevice());
+      device = cachedDevice ?? (await adapter.requestDevice());
       cachedDevice = device;
       device.addEventListener("uncapturederror", (e: GPUUncapturedErrorEvent) =>
         console.error("WebGPU error:", e.error),
       );
 
-      const ctx = cvs.getContext("webgpu");
+      ctx = cvs.getContext("webgpu");
       if (!ctx) return console.error("WebGPU context failed");
-      const format = gpu.getPreferredCanvasFormat();
-      ctx.configure({ device, format, alphaMode: "premultiplied" });
+      format = gpu.getPreferredCanvasFormat();
+      ctx.configure({ device: device, format: format, alphaMode: "premultiplied" });
 
       const shader = device.createShaderModule({ code: shaderCode });
       if (id !== initId) return;
-      const skinTexture = await loadTexture(device, skinUrl);
-      const sampler = device.createSampler({
+      skinTexture = await loadTexture(device, skinUrl);
+      sampler = device.createSampler({
         magFilter: "nearest",
         minFilter: "nearest",
       });
 
       if (id !== initId) return;
-      // Cape — uses placeholder 1×1 when disabled (required by pipeline layout)
-      let capeTexture = placeholderTexture(device);
-      if (capeUrl) {
-        try {
-          capeTexture = await loadTexture(device, capeUrl);
-        } catch {
-          console.warn("Failed to load cape texture");
-        }
-      }
+      // Always start with a placeholder 1×1 — real cape loaded by reloadCape
+      capeTexture = placeholderTexture(device);
 
-      const uniformBuffer = device.createBuffer({
+      uniformBuffer = device.createBuffer({
         size: 32,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       });
 
-      const pipeline = device.createRenderPipeline({
+      pipeline = device.createRenderPipeline({
         layout: "auto",
         vertex: { module: shader },
         fragment: {
           module: shader,
           targets: [
             {
-              format,
+              format: format,
               blend: {
                 color: {
                   srcFactor: "src-alpha",
@@ -217,20 +275,13 @@ You can detect this separately and show a fallback, e.g.,
         },
       });
 
-      const bindGroup0 = device.createBindGroup({
+      bindGroup0 = device.createBindGroup({
         layout: pipeline.getBindGroupLayout(0),
         entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
       });
-      const bindGroup1 = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(1),
-        entries: [
-          { binding: 0, resource: skinTexture.createView() },
-          { binding: 1, resource: sampler },
-          { binding: 2, resource: capeTexture.createView() },
-        ],
-      });
+      bindGroup1 = makeBindGroup1();
 
-      let depthTexture = device.createTexture({
+      depthTexture = device.createTexture({
         size: [cvs.width, cvs.height],
         format: "depth24plus",
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
@@ -248,9 +299,9 @@ You can detect this separately and show a fallback, e.g.,
         ubuf[4] = scale;
         ubuf[5] = width / height;
         ubuf[6] = capeUrl ? 1 : 0;
-        device.queue.writeBuffer(uniformBuffer, 0, ubuf);
+        device!.queue.writeBuffer(uniformBuffer!, 0, ubuf);
 
-        const encoder = device.createCommandEncoder();
+        const encoder = device!.createCommandEncoder();
         const pass = encoder.beginRenderPass({
           colorAttachments: [
             {
@@ -261,21 +312,22 @@ You can detect this separately and show a fallback, e.g.,
             },
           ],
           depthStencilAttachment: {
-            view: depthTexture.createView(),
+            view: depthTexture!.createView(),
             depthLoadOp: "clear",
             depthStoreOp: "store",
             depthClearValue: 1.0,
           },
         });
-        pass.setPipeline(pipeline);
-        pass.setBindGroup(0, bindGroup0);
-        pass.setBindGroup(1, bindGroup1);
+        pass.setPipeline(pipeline!);
+        pass.setBindGroup(0, bindGroup0!);
+        pass.setBindGroup(1, bindGroup1!);
         pass.draw(252, 1, 0, 0);
         pass.draw(252, 1, 252, 0);
         pass.end();
-        device.queue.submit([encoder.finish()]);
+        device!.queue.submit([encoder.finish()]);
       }
       requestAnimationFrame(frame);
+      gpuReady = true;
     } catch (err) {
       console.error("Init failed:", err);
     }
