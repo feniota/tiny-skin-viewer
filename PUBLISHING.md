@@ -15,7 +15,7 @@ JSR is different from NPM. In our case:
 
 Here's our solution:
 
-1. Alongside `svelte-package` output, we invoke [`svelte/compiler`](https://svelte.dev/docs/svelte/svelte-compiler) to emit `dist/SkinViewer.svelte.js` so the import graph stays pure JS.
+1. Alongside `svelte-package` output, we invoke [`svelte/compiler`](https://svelte.dev/docs/svelte/svelte-compiler) to emit `dist/SkinViewer.js` so the import graph stays pure JS.
 2. Separate JSR entry point. JSR builds use `src/jsr.ts`, a raw TypeScript file that does not import `.svelte`. It re-exports the pre-compiled JS module instead.
 3. Move types to a standalone `.d.ts`. `svelte-package` copies `.d.ts` to `dist/` without creating a same-named `.js` file, so `import type { … } from "./types.d.ts"` works in both the `.svelte` source and the ESM entry. Previously, `SkinViewerProps` was defined in `index.ts`, which imported a `.svelte` file — that caused JSR publish to fail.
 

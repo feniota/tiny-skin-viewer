@@ -11,6 +11,6 @@ const r = compile(svelte_src, {
 
 const src = r.js.code.replace(`"./shader"`, `"./shader.js"`);
 
-await Deno.writeTextFile("dist/SkinViewer.svelte.js", src);
+await Deno.writeTextFile("dist/SkinViewer.js", src);
 
 console.log("Compiled", r.js.code.length, "bytes");
