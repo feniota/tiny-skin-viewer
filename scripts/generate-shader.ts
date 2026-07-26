@@ -42,6 +42,21 @@ function boxUV(u: number, v: number, w: number, h: number, d: number) {
   ];
 }
 
+/** Like boxUV but with a reduced width (ws) for faces 0/1/2 (the ones
+ *  that map `w` along U).  Used for slim arms where the texture artist
+ *  only draws 3px of arm in a 4px-wide UV slot. */
+function boxUV_slim(u: number, v: number, w: number, h: number, d: number, ws: number) {
+  type Rect = [number, number, number, number];
+  return <const>[
+    [u + d, v + d, u + d + ws, v + d + h] satisfies Rect, // 0 +Z front   = South (narrowed)
+    [u + d + w + d, v + d, u + d + w + d + ws, v + d + h] satisfies Rect, // 1 -Z back    = North (narrowed)
+    [u + d, v, u + d + ws, v + d] satisfies Rect, // 2 +Y top     = Up (narrowed)
+    [u + d + w, v, u + d + w + d, v + d] satisfies Rect, // 3 -Y bottom  = Down (unchanged)
+    [u + d + w, v + d, u + d + w + d, v + d + h] satisfies Rect, // 4 +X right   = East (unchanged)
+    [u, v + d, u + d, v + d + h] satisfies Rect, // 5 -X left    = West (unchanged)
+  ];
+}
+
 // ── part definitions ─────────────────────────────────────────────
 
 interface Part {
@@ -282,6 +297,17 @@ const uvf = (n: number) => (n * T).toFixed(5);
 
 const partUVs = parts.map(p => boxUV(p.u, p.v, p.uvW, p.uvH, p.uvD));
 
+/** Slim-arm UV variants for parts 2, 3, 9, 10 (right_arm, left_arm,
+ *  right_arm_overlay, left_arm_overlay).  The texture only draws 3 px
+ *  of arm in the 4‑px‑wide UV slot, so faces that map `w` (0,1,2)
+ *  must use ws=3 instead of w=4.  The other faces are unchanged. */
+const slimPartIndices = [2, 3, 9, 10];
+const partUVsSlim = partUVs.map((uv, i) =>
+  slimPartIndices.includes(i)
+    ? boxUV_slim(parts[i].u, parts[i].v, parts[i].uvW, parts[i].uvH, parts[i].uvD, 3)
+    : uv,
+);
+
 // ── generate WGSL fragments ──────────────────────────────────────
 
 console.log(`Generating shader for ${partCount} body parts…`);
@@ -315,45 +341,49 @@ const partLines = parts
   })
   .join("\n");
 
-// UV arrays
-const uvBlocks = parts
-  .map((_p, i) => {
-    const uv = partUVs[i];
-    // Cape uses a separate 64×32 texture → hardcoded UV from cape.txt mapping
-    if (i === 6 || i === 13) {
-      // User-provided pixel rects on a 64×32 cape texture:
-      //   face 0 (+Z, outward):  (1,  1) → (10, 16)
-      //   face 1 (-Z, inward):   (12, 1) → (21, 16)
-      //   face 2 (+Y, top):      (1,  0) → (10,  0)
-      //   face 3 (-Y, bottom):   (11, 0) → (20,  0)
-      //   face 4 (+X, right):    (11, 1) → (11, 16)
-      //   face 5 (-X, left):     (0,  1) → ( 0, 16)
-      const capeFaceUV: [number, number, number, number][] = [
-        [1, 1, 11, 17], // +Z outward
-        [12, 1, 22, 17], // -Z inward
-        [1, 0, 11, 1], // +Y top
-        [11, 0, 21, 1], // -Y bottom
-        [11, 1, 12, 17], // +X right
-        [0, 1, 1, 17], // -X left
-      ];
-      const uvW = 64,
-        uvH = 32;
-      const faces = capeFaceUV
-        .map(
-          ([x0, y0, x1, y1]) =>
-            `    FaceUV(vec2f(${(x0 / uvW).toFixed(5)}, ${(y0 / uvH).toFixed(5)}), vec2f(${(x1 / uvW).toFixed(5)}, ${(y1 / uvH).toFixed(5)}))`,
-        )
-        .join(",\n");
-      return `const uv_${uvName(i)} = array<FaceUV, 6>(\n${faces}\n);`;
-    }
-    const faces = uv
+// ── helper: format a single UV array block ─────────────────────────
+
+function formatUVBlock(
+  name: string,
+  uv: readonly [number, number, number, number][],
+  isCape: boolean,
+) {
+  if (isCape) {
+    const capeFaceUV: [number, number, number, number][] = [
+      [1, 1, 11, 17], // +Z outward
+      [12, 1, 22, 17], // -Z inward
+      [1, 0, 11, 1], // +Y top
+      [11, 0, 21, 1], // -Y bottom
+      [11, 1, 12, 17], // +X right
+      [0, 1, 1, 17], // -X left
+    ];
+    const uvW = 64,
+      uvH = 32;
+    const faces = capeFaceUV
       .map(
         ([x0, y0, x1, y1]) =>
-          `    FaceUV(vec2f(${uvf(x0)}, ${uvf(y0)}), vec2f(${uvf(x1)}, ${uvf(y1)}))`,
+          `    FaceUV(vec2f(${(x0 / uvW).toFixed(5)}, ${(y0 / uvH).toFixed(5)}), vec2f(${(x1 / uvW).toFixed(5)}, ${(y1 / uvH).toFixed(5)}))`,
       )
       .join(",\n");
-    return `const uv_${uvName(i)} = array<FaceUV, 6>(\n${faces}\n);`;
-  })
+    return `const uv_${name} = array<FaceUV, 6>(\n${faces}\n);`;
+  }
+  const faces = uv
+    .map(
+      ([x0, y0, x1, y1]) =>
+        `    FaceUV(vec2f(${uvf(x0)}, ${uvf(y0)}), vec2f(${uvf(x1)}, ${uvf(y1)}))`,
+    )
+    .join(",\n");
+  return `const uv_${name} = array<FaceUV, 6>(\n${faces}\n);`;
+}
+
+// UV arrays
+const uvBlocks = parts
+  .map((_p, i) => formatUVBlock(uvName(i), partUVs[i], i === 6 || i === 13))
+  .join("\n\n");
+
+// Slim UV variants for arm parts
+const slimUVBlocks = [2, 3, 9, 10]
+  .map(i => formatUVBlock(`${uvName(i)}_slim`, partUVsSlim[i], false))
   .join("\n\n");
 
 // Animation phases
@@ -432,19 +462,21 @@ struct FaceUV { min: vec2f, max: vec2f }
 
 ${uvBlocks}
 
-fn uv_for_part(part_id: u32, face: u32) -> FaceUV {
+${slimUVBlocks}
+
+fn uv_for_part(part_id: u32, face: u32, is_slim: f32) -> FaceUV {
     switch part_id {
         case 0u  { return uv_head[face]; }
         case 1u  { return uv_body[face]; }
-        case 2u  { return uv_rarm[face]; }
-        case 3u  { return uv_larm[face]; }
+        case 2u  { return select(uv_rarm[face], uv_rarm_slim[face], is_slim != 0.0); }
+        case 3u  { return select(uv_larm[face], uv_larm_slim[face], is_slim != 0.0); }
         case 4u  { return uv_rleg[face]; }
         case 5u  { return uv_lleg[face]; }
         case 6u  { return uv_cape[face]; }
         case 7u  { return uv_head_ov[face]; }
         case 8u  { return uv_body_ov[face]; }
-        case 9u  { return uv_rarm_ov[face]; }
-        case 10u { return uv_larm_ov[face]; }
+        case 9u  { return select(uv_rarm_ov[face], uv_rarm_ov_slim[face], is_slim != 0.0); }
+        case 10u { return select(uv_larm_ov[face], uv_larm_ov_slim[face], is_slim != 0.0); }
         case 11u { return uv_rleg_ov[face]; }
         case 12u { return uv_lleg_ov[face]; }
         default  { return uv_cape_ov[face]; }
@@ -530,7 +562,7 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
     let pv = mul4(mul4(projection(), view()), model);
 
     let fuv  = cube_uv[vertex_id];
-    let rect = uv_for_part(part_id, face);
+    let rect = uv_for_part(part_id, face, uniforms.is_slim);
     let tex_uv = vec2f(
         rect.min.x + fuv.x * (rect.max.x - rect.min.x),
         rect.max.y - fuv.y * (rect.max.y - rect.min.y),

@@ -250,19 +250,55 @@ const uv_cape_ov = array<FaceUV, 6>(
     FaceUV(vec2f(0.00000, 0.03125), vec2f(0.01563, 0.53125))
 );
 
-fn uv_for_part(part_id: u32, face: u32) -> FaceUV {
+const uv_rarm_slim = array<FaceUV, 6>(
+    FaceUV(vec2f(0.68750, 0.31250), vec2f(0.73438, 0.50000)),
+    FaceUV(vec2f(0.81250, 0.31250), vec2f(0.85938, 0.50000)),
+    FaceUV(vec2f(0.68750, 0.25000), vec2f(0.73438, 0.31250)),
+    FaceUV(vec2f(0.75000, 0.25000), vec2f(0.81250, 0.31250)),
+    FaceUV(vec2f(0.75000, 0.31250), vec2f(0.81250, 0.50000)),
+    FaceUV(vec2f(0.62500, 0.31250), vec2f(0.68750, 0.50000))
+);
+
+const uv_larm_slim = array<FaceUV, 6>(
+    FaceUV(vec2f(0.56250, 0.81250), vec2f(0.60938, 1.00000)),
+    FaceUV(vec2f(0.68750, 0.81250), vec2f(0.73438, 1.00000)),
+    FaceUV(vec2f(0.56250, 0.75000), vec2f(0.60938, 0.81250)),
+    FaceUV(vec2f(0.62500, 0.75000), vec2f(0.68750, 0.81250)),
+    FaceUV(vec2f(0.62500, 0.81250), vec2f(0.68750, 1.00000)),
+    FaceUV(vec2f(0.50000, 0.81250), vec2f(0.56250, 1.00000))
+);
+
+const uv_rarm_ov_slim = array<FaceUV, 6>(
+    FaceUV(vec2f(0.68750, 0.56250), vec2f(0.73438, 0.75000)),
+    FaceUV(vec2f(0.81250, 0.56250), vec2f(0.85938, 0.75000)),
+    FaceUV(vec2f(0.68750, 0.50000), vec2f(0.73438, 0.56250)),
+    FaceUV(vec2f(0.75000, 0.50000), vec2f(0.81250, 0.56250)),
+    FaceUV(vec2f(0.75000, 0.56250), vec2f(0.81250, 0.75000)),
+    FaceUV(vec2f(0.62500, 0.56250), vec2f(0.68750, 0.75000))
+);
+
+const uv_larm_ov_slim = array<FaceUV, 6>(
+    FaceUV(vec2f(0.81250, 0.81250), vec2f(0.85938, 1.00000)),
+    FaceUV(vec2f(0.93750, 0.81250), vec2f(0.98438, 1.00000)),
+    FaceUV(vec2f(0.81250, 0.75000), vec2f(0.85938, 0.81250)),
+    FaceUV(vec2f(0.87500, 0.75000), vec2f(0.93750, 0.81250)),
+    FaceUV(vec2f(0.87500, 0.81250), vec2f(0.93750, 1.00000)),
+    FaceUV(vec2f(0.75000, 0.81250), vec2f(0.81250, 1.00000))
+);
+
+fn uv_for_part(part_id: u32, face: u32, is_slim: f32) -> FaceUV {
     switch part_id {
         case 0u  { return uv_head[face]; }
         case 1u  { return uv_body[face]; }
-        case 2u  { return uv_rarm[face]; }
-        case 3u  { return uv_larm[face]; }
+        case 2u  { return select(uv_rarm[face], uv_rarm_slim[face], is_slim != 0.0); }
+        case 3u  { return select(uv_larm[face], uv_larm_slim[face], is_slim != 0.0); }
         case 4u  { return uv_rleg[face]; }
         case 5u  { return uv_lleg[face]; }
         case 6u  { return uv_cape[face]; }
         case 7u  { return uv_head_ov[face]; }
         case 8u  { return uv_body_ov[face]; }
-        case 9u  { return uv_rarm_ov[face]; }
-        case 10u { return uv_larm_ov[face]; }
+        case 9u  { return select(uv_rarm_ov[face], uv_rarm_ov_slim[face], is_slim != 0.0); }
+        case 10u { return select(uv_larm_ov[face], uv_larm_ov_slim[face], is_slim != 0.0); }
         case 11u { return uv_rleg_ov[face]; }
         case 12u { return uv_lleg_ov[face]; }
         default  { return uv_cape_ov[face]; }
@@ -348,7 +384,7 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
     let pv = mul4(mul4(projection(), view()), model);
 
     let fuv  = cube_uv[vertex_id];
-    let rect = uv_for_part(part_id, face);
+    let rect = uv_for_part(part_id, face, uniforms.is_slim);
     let tex_uv = vec2f(
         rect.min.x + fuv.x * (rect.max.x - rect.min.x),
         rect.max.y - fuv.y * (rect.max.y - rect.min.y),
