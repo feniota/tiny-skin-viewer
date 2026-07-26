@@ -2,6 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@feniota/wasm-wgsl-minifier@0.1": "0.1.0",
+    "npm:@sveltejs/package@*": "2.5.8_svelte@5.56.8_typescript@6.0.3",
     "npm:@sveltejs/package@^2.5.0": "2.5.8_svelte@5.56.8_typescript@6.0.3",
     "npm:@sveltejs/package@^2.5.8": "2.5.8_svelte@5.56.8_typescript@6.0.3",
     "npm:@sveltejs/vite-plugin-svelte@7": "7.2.0_svelte@5.56.8_vite@8.1.5__@types+node@24.13.3_@types+node@24.13.3",
