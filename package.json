@@ -1,7 +1,7 @@
 {
   "name": "tiny-skin-viewer",
-  "version": "0.2.2",
-  "description": "Tiny GPU-driven Minecraft skin viewer — WebGPU + Svelte 5",
+  "version": "0.2.3",
+  "description": "Tiny GPU-driven Minecraft skin viewer",
   "homepage": "https://github.com/feniota/tiny-skin-viewer#readme",
   "bugs": {
     "url": "https://github.com/feniota/tiny-skin-viewer/issues"

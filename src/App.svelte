@@ -59,7 +59,8 @@
 
 <SkinViewer skinUrl="/Template_slim_nooverlay.png" isSlim {scale} {capeUrl} {resetId} {time} />
 
-<SkinViewer skinUrl="/Template_slim.png" isSlim  />
+<SkinViewer skinUrl="/Template_slim.png" isSlim />
+
 <style>
   .toolbar {
     position: fixed;

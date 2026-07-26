@@ -298,7 +298,7 @@ You can detect this separately and show a fallback, e.g.,
         ubuf[3] = isSlim ? 1 : 0;
         ubuf[4] = scale;
         ubuf[5] = width / height;
-          ubuf[6] = capeUrl ? 1 : 0;
+        ubuf[6] = capeUrl ? 1 : 0;
         device!.queue.writeBuffer(uniformBuffer!, 0, ubuf);
 
         const encoder = device!.createCommandEncoder();

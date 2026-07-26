@@ -3,7 +3,7 @@
 
   // ── JSR metadata ────────────────────────────────────────────
   "name": "@feniota/tiny-skin-viewer",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Tiny GPU-driven Minecraft skin viewer — WebGPU + Svelte 5, all rendering in a single WGSL shader, no dependencies.",
   "exports": {
     ".": "./src/jsr.ts"
@@ -30,6 +30,11 @@
     "@webgpu/types": "npm:@webgpu/types@^0.1.71",
     "@sveltejs/vite-plugin-svelte": "npm:@sveltejs/vite-plugin-svelte@^7",
     "@sveltejs/package": "npm:@sveltejs/package@^2.5",
-    "vite": "npm:vite@^8"
+    "vite": "npm:vite@^8",
+    "@feniota/wasm-wgsl-minifier": "jsr:@feniota/wasm-wgsl-minifier@^0.1.0"
+  },
+  "minimumDependencyAge": {
+    "age": 1440,
+    "exclude": ["jsr:@feniota/wasm-wgsl-minifier"]
   }
 }

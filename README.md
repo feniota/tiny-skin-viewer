@@ -1,18 +1,20 @@
-# TinySkinViewer
+# Tiny Skin Viewer
 
 [![JSR](https://jsr.io/badges/@feniota/tiny-skin-viewer)](https://jsr.io/@feniota/tiny-skin-viewer) [![NPM Version](https://img.shields.io/npm/v/tiny-skin-viewer)](https://npmjs.com/package/tiny-skin-viewer)
 
-GPU-driven Minecraft skin viewer. All rendering — model transform, limb animation, skin sampling, cape physics, scale — runs in a single WGSL shader. CPU only feeds 7 floats per frame.
+GPU-driven tiny Minecraft skin viewer. All rendering — model transform, limb animation, skin sampling, cape physics, scale — runs in a single WGSL shader. CPU only feeds 7 floats per frame.
+
+Currently ovly available as Svelte component.
 
 ## vs. [bs-community/skinview3d](https://github.com/bs-community/skinview3d)
 
-|                     | skinview3d | TinySkinViewer        |
+|                     | skinview3d | tiny-skin-viewer      |
 | ------------------- | ---------- | --------------------- |
-| **Runtime payload** | 520 KB     | **~21 KB**¹           |
+| **Runtime payload** | 520 KB     | **~20 KB**[^1]        |
 | **Dependencies**    | three.js   | **none** (raw WebGPU) |
 | **GPU API**         | WebGL      | WebGPU                |
 
-¹ 6.2 KB component + 15 KB inline shader (uncompressed, Svelte runtime excluded)
+[^1]: 8 KB component + 12 KB inline shader (uncompressed, Svelte runtime excluded)
 
 ## Usage
 
