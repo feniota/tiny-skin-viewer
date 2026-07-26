@@ -117,6 +117,13 @@ const parts = array<Part, 14>(
     Part(vec3f(0.0000, 0.0000, -0.0437), vec3f(0.6250, 1.0000, 0.0625)) // cape_overlay
 );
 
+const parts_slim = array<Part, 4>(
+    Part(vec3f(-0.3750, 0.1250, 0.0000), vec3f(0.1875, 0.7500, 0.2500)), // right_arm
+    Part(vec3f(0.3750, 0.1250, 0.0000), vec3f(0.1875, 0.7500, 0.2500)), // left_arm
+    Part(vec3f(-0.3750, 0.1250, 0.0000), vec3f(0.2188, 0.7813, 0.2813)), // right_arm_overlay
+    Part(vec3f(0.3750, 0.1250, 0.0000), vec3f(0.2188, 0.7813, 0.2813)), // left_arm_overlay
+);
+
 const phases = array<f32, 14>(0.0, 0.0, 1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 0.0, 1.0, -1.0, -1.0, 1.0, 0.0);
 const pivot_y = 0.3750f;
 
@@ -252,37 +259,37 @@ const uv_cape_ov = array<FaceUV, 6>(
 
 const uv_rarm_slim = array<FaceUV, 6>(
     FaceUV(vec2f(0.68750, 0.31250), vec2f(0.73438, 0.50000)),
-    FaceUV(vec2f(0.81250, 0.31250), vec2f(0.85938, 0.50000)),
+    FaceUV(vec2f(0.79688, 0.31250), vec2f(0.84375, 0.50000)),
     FaceUV(vec2f(0.68750, 0.25000), vec2f(0.73438, 0.31250)),
-    FaceUV(vec2f(0.75000, 0.25000), vec2f(0.81250, 0.31250)),
-    FaceUV(vec2f(0.75000, 0.31250), vec2f(0.81250, 0.50000)),
+    FaceUV(vec2f(0.73438, 0.25000), vec2f(0.79688, 0.31250)),
+    FaceUV(vec2f(0.73438, 0.31250), vec2f(0.79688, 0.50000)),
     FaceUV(vec2f(0.62500, 0.31250), vec2f(0.68750, 0.50000))
 );
 
 const uv_larm_slim = array<FaceUV, 6>(
     FaceUV(vec2f(0.56250, 0.81250), vec2f(0.60938, 1.00000)),
-    FaceUV(vec2f(0.68750, 0.81250), vec2f(0.73438, 1.00000)),
+    FaceUV(vec2f(0.67188, 0.81250), vec2f(0.71875, 1.00000)),
     FaceUV(vec2f(0.56250, 0.75000), vec2f(0.60938, 0.81250)),
-    FaceUV(vec2f(0.62500, 0.75000), vec2f(0.68750, 0.81250)),
-    FaceUV(vec2f(0.62500, 0.81250), vec2f(0.68750, 1.00000)),
+    FaceUV(vec2f(0.60938, 0.75000), vec2f(0.67188, 0.81250)),
+    FaceUV(vec2f(0.60938, 0.81250), vec2f(0.67188, 1.00000)),
     FaceUV(vec2f(0.50000, 0.81250), vec2f(0.56250, 1.00000))
 );
 
 const uv_rarm_ov_slim = array<FaceUV, 6>(
     FaceUV(vec2f(0.68750, 0.56250), vec2f(0.73438, 0.75000)),
-    FaceUV(vec2f(0.81250, 0.56250), vec2f(0.85938, 0.75000)),
+    FaceUV(vec2f(0.79688, 0.56250), vec2f(0.84375, 0.75000)),
     FaceUV(vec2f(0.68750, 0.50000), vec2f(0.73438, 0.56250)),
-    FaceUV(vec2f(0.75000, 0.50000), vec2f(0.81250, 0.56250)),
-    FaceUV(vec2f(0.75000, 0.56250), vec2f(0.81250, 0.75000)),
+    FaceUV(vec2f(0.73438, 0.50000), vec2f(0.79688, 0.56250)),
+    FaceUV(vec2f(0.73438, 0.56250), vec2f(0.79688, 0.75000)),
     FaceUV(vec2f(0.62500, 0.56250), vec2f(0.68750, 0.75000))
 );
 
 const uv_larm_ov_slim = array<FaceUV, 6>(
     FaceUV(vec2f(0.81250, 0.81250), vec2f(0.85938, 1.00000)),
-    FaceUV(vec2f(0.93750, 0.81250), vec2f(0.98438, 1.00000)),
+    FaceUV(vec2f(0.92188, 0.81250), vec2f(0.96875, 1.00000)),
     FaceUV(vec2f(0.81250, 0.75000), vec2f(0.85938, 0.81250)),
-    FaceUV(vec2f(0.87500, 0.75000), vec2f(0.93750, 0.81250)),
-    FaceUV(vec2f(0.87500, 0.81250), vec2f(0.93750, 1.00000)),
+    FaceUV(vec2f(0.85938, 0.75000), vec2f(0.92188, 0.81250)),
+    FaceUV(vec2f(0.85938, 0.81250), vec2f(0.92188, 1.00000)),
     FaceUV(vec2f(0.75000, 0.81250), vec2f(0.81250, 1.00000))
 );
 
@@ -290,15 +297,15 @@ fn uv_for_part(part_id: u32, face: u32, is_slim: f32) -> FaceUV {
     switch part_id {
         case 0u  { return uv_head[face]; }
         case 1u  { return uv_body[face]; }
-        case 2u  { return select(uv_rarm[face], uv_rarm_slim[face], is_slim != 0.0); }
-        case 3u  { return select(uv_larm[face], uv_larm_slim[face], is_slim != 0.0); }
+        case 2u  { if (is_slim != 0.0) { return uv_rarm_slim[face]; } else { return uv_rarm[face]; } }
+        case 3u  { if (is_slim != 0.0) { return uv_larm_slim[face]; } else { return uv_larm[face]; } }
         case 4u  { return uv_rleg[face]; }
         case 5u  { return uv_lleg[face]; }
         case 6u  { return uv_cape[face]; }
         case 7u  { return uv_head_ov[face]; }
         case 8u  { return uv_body_ov[face]; }
-        case 9u  { return select(uv_rarm_ov[face], uv_rarm_ov_slim[face], is_slim != 0.0); }
-        case 10u { return select(uv_larm_ov[face], uv_larm_ov_slim[face], is_slim != 0.0); }
+        case 9u  { if (is_slim != 0.0) { return uv_rarm_ov_slim[face]; } else { return uv_rarm_ov[face]; } }
+        case 10u { if (is_slim != 0.0) { return uv_larm_ov_slim[face]; } else { return uv_larm_ov[face]; } }
         case 11u { return uv_rleg_ov[face]; }
         case 12u { return uv_lleg_ov[face]; }
         default  { return uv_cape_ov[face]; }
@@ -329,14 +336,20 @@ fn view() -> mat4x4f {
 fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
     let part_id   = id / 36u;
     let vertex_id = id % 36u;
-    let part      = parts[part_id];
+    var part      = parts[part_id];
     let face      = vertex_id / 6u;
 
-    var sz = part.size;
     // Apply slim arm width for base arms (2,3) and overlay arms (9,10)
     if (part_id == 2u || part_id == 3u || part_id == 9u || part_id == 10u) {
-        sz.x *= 1.0 - uniforms.is_slim * 0.25;
+        var slim_part_id = 0u;
+        if (part_id == 2u || part_id == 3u) {
+          slim_part_id = part_id - 2u;
+        }else{
+          slim_part_id = part_id - 7u;
+        }
+        part=parts_slim[slim_part_id];
     }
+    var sz = part.size;
     var p = cube[vertex_id] * sz;
 
     // ── limb swing animation (parts 0-6: base, 7-12: overlay) ──
@@ -376,6 +389,16 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
             let cape_rot = mul4(rotate_y(3.14159), rotate_x(-angle_x));
             p = (cape_rot * vec4f(p - cape_pivot, 1.0)).xyz + cape_pivot;
         }
+    }
+
+    // ── slim arm position offset ──────────────────────────────────
+    // When the arm is narrowed (sz.x × 0.75), the inner edge pulls
+    // away from the body by 0.5 px.  Push the arm back toward the
+    // body centre so it stays flush.
+    if (uniforms.is_slim != 0.0 && (part_id == 2u || part_id == 3u || part_id == 9u || part_id == 10u)) {
+        // Right arm (2, 9) shift +X, left arm (3, 10) shift -X
+        let sign = select(-1.0, 1.0, part_id == 2u || part_id == 9u);
+        p.x += sign * 0.03125;
     }
 
     p += part.pos;

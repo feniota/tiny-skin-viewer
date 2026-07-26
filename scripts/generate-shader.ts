@@ -29,7 +29,10 @@ const OVERLAY_EXT = 0.25; // pixels outward per face (extends both sides)
 
 // ── helpers ──────────────────────────────────────────────────────
 
-/** Compute 6 face UV rects from Minecraft texOffs + box dimensions */
+/** Compute 6 face UV rects from Minecraft texOffs + box dimensions
+ * @param u v: starting pixel on the texture image
+ * @param w h d: size of the box
+ */
 function boxUV(u: number, v: number, w: number, h: number, d: number) {
   type Rect = [number, number, number, number];
   return <const>[
@@ -39,21 +42,6 @@ function boxUV(u: number, v: number, w: number, h: number, d: number) {
     [u + d + w, v, u + d + w + d, v + d] satisfies Rect, // 3 -Y bottom  = Down
     [u + d + w, v + d, u + d + w + d, v + d + h] satisfies Rect, // 4 +X right   = East
     [u, v + d, u + d, v + d + h] satisfies Rect, // 5 -X left    = West
-  ];
-}
-
-/** Like boxUV but with a reduced width (ws) for faces 0/1/2 (the ones
- *  that map `w` along U).  Used for slim arms where the texture artist
- *  only draws 3px of arm in a 4px-wide UV slot. */
-function boxUV_slim(u: number, v: number, w: number, h: number, d: number, ws: number) {
-  type Rect = [number, number, number, number];
-  return <const>[
-    [u + d, v + d, u + d + ws, v + d + h] satisfies Rect, // 0 +Z front   = South (narrowed)
-    [u + d + w + d, v + d, u + d + w + d + ws, v + d + h] satisfies Rect, // 1 -Z back    = North (narrowed)
-    [u + d, v, u + d + ws, v + d] satisfies Rect, // 2 +Y top     = Up (narrowed)
-    [u + d + w, v, u + d + w + d, v + d] satisfies Rect, // 3 -Y bottom  = Down (unchanged)
-    [u + d + w, v + d, u + d + w + d, v + d + h] satisfies Rect, // 4 +X right   = East (unchanged)
-    [u, v + d, u + d, v + d + h] satisfies Rect, // 5 -X left    = West (unchanged)
   ];
 }
 
@@ -85,7 +73,13 @@ type PartDef = Pick<
 };
 
 const partDefs: PartDef[] = [
-  //  name         centre (px)       size (px)       UV dims        phase  baseU  baseV  ovU  ovV
+  // name: name of this part
+  // px, py, pz: center (px) of the 3D block
+  // sx, sy, sz: size (px) of the 3D block
+  // uvW, uvH, uvD: size (px) of the box on the texture
+  // phase: coefficient on the walk animation (typically -1, 0 or 1)
+  // u, v: starting (top-left) pixel of the texture
+  // overlayUv: starting pixel of its overlay (the second layer) texture
   {
     name: "head",
     px: 0,
@@ -200,6 +194,41 @@ const partDefs: PartDef[] = [
   },
 ];
 
+const slimArmsDefs: PartDef[]=[
+ {
+    name: "right_arm",
+    px: -6,
+    py: 18,
+    pz: 0,
+    sx: 3,
+    sy: 12,
+    sz: 4,
+    uvW: 3,
+    uvH: 12,
+    uvD: 4,
+    phase: 1,
+    u: 40,
+    v: 16,
+    overlayUv: [40, 32],
+  },
+  {
+    name: "left_arm",
+    px: 6,
+    py: 18,
+    pz: 0,
+    sx: 3,
+    sy: 12,
+    sz: 4,
+    uvW: 3,
+    uvH: 12,
+    uvD: 4,
+    phase: -1,
+    u: 32,
+    v: 48,
+    overlayUv: [48, 48],
+  },
+]
+
 // Build combined parts array: indices 0-6 = base, 7-13 = overlay
 const baseParts: Part[] = partDefs.map(d => ({
   name: d.name,
@@ -231,6 +260,37 @@ const overlayParts: Part[] = partDefs.map(d => ({
   u: d.overlayUv[0],
   v: d.overlayUv[1],
 }));
+
+const basePartsSlim: Part[] = slimArmsDefs.map(d => ({
+  name: d.name,
+  px: d.px,
+  py: d.py,
+  pz: d.pz,
+  sx: d.sx,
+  sy: d.sy,
+  sz: d.sz,
+  uvW: d.uvW,
+  uvH: d.uvH,
+  uvD: d.uvD,
+  phase: d.phase,
+  u: d.u,
+  v: d.v,
+}));
+const overlayPartsSlim: Part[] = slimArmsDefs.map(d => ({
+  name: d.name + "_overlay",
+  px: d.px,
+  py: d.py,
+  pz: d.pz,
+  sx: d.sx + OVERLAY_EXT * 2, // model expands
+  sy: d.sy + OVERLAY_EXT * 2,
+  sz: d.sz + OVERLAY_EXT * 2,
+  uvW: d.uvW,
+  uvH: d.uvH,
+  uvD: d.uvD, // UV stays base size
+  phase: d.phase,
+  u: d.overlayUv[0],
+  v: d.overlayUv[1],
+}));
 // Cape overlay should not expand — no separate overlay texture, so expanding
 // it makes the 1-px-thick cape look visibly thicker for no benefit.
 const capeIdx = partDefs.findIndex(d => d.name === "cape");
@@ -239,6 +299,7 @@ overlayParts[capeIdx].sy = partDefs[capeIdx].sy;
 overlayParts[capeIdx].sz = partDefs[capeIdx].sz;
 
 const parts = [...baseParts, ...overlayParts];
+const partsSlim = [...basePartsSlim, ...overlayPartsSlim];
 
 // ── unit cube geometry ───────────────────────────────────────────
 
@@ -290,6 +351,7 @@ const CUBE: [number, number, number][] = [
 // ── derived values ────────────────────────────────────────────────
 
 const partCount = parts.length;
+const partCountSlim = partsSlim.length;
 const totalVertices = partCount * CUBE.length;
 const uvf = (n: number) => (n * T).toFixed(5);
 
@@ -297,16 +359,15 @@ const uvf = (n: number) => (n * T).toFixed(5);
 
 const partUVs = parts.map(p => boxUV(p.u, p.v, p.uvW, p.uvH, p.uvD));
 
-/** Slim-arm UV variants for parts 2, 3, 9, 10 (right_arm, left_arm,
- *  right_arm_overlay, left_arm_overlay).  The texture only draws 3 px
- *  of arm in the 4‑px‑wide UV slot, so faces that map `w` (0,1,2)
- *  must use ws=3 instead of w=4.  The other faces are unchanged. */
-const slimPartIndices = [2, 3, 9, 10];
-const partUVsSlim = partUVs.map((uv, i) =>
-  slimPartIndices.includes(i)
-    ? boxUV_slim(parts[i].u, parts[i].v, parts[i].uvW, parts[i].uvH, parts[i].uvD, 3)
-    : uv,
-);
+const partUVsSlim = parts.map(p=>{
+  if(p.name!=="right_arm" && p.name!=="left_arm" && p.name!=="right_arm_overlay" && p.name!=="left_arm_overlay")
+  {
+    return boxUV(p.u,p.v,p.uvW,p.uvH,p.uvD);
+  }
+  else{
+    return boxUV(p.u,p.v,3,p.uvH,p.uvD);
+  }
+})
 
 // ── generate WGSL fragments ──────────────────────────────────────
 
@@ -335,6 +396,14 @@ const uvName = (i: number) => {
 
 // Parts array
 const partLines = parts
+  .map((p, i) => {
+    const comma = i < parts.length - 1 ? "," : "";
+    return `    Part(vec3f(${(p.px * PX).toFixed(4)}, ${(p.py * PX - Y0).toFixed(4)}, ${(p.pz * PX).toFixed(4)}), vec3f(${(p.sx * PX).toFixed(4)}, ${(p.sy * PX).toFixed(4)}, ${(p.sz * PX).toFixed(4)}))${comma} // ${p.name}`;
+  })
+  .join("\n");
+
+const partLinesSlim=
+  partsSlim
   .map((p, i) => {
     const comma = i < parts.length - 1 ? "," : "";
     return `    Part(vec3f(${(p.px * PX).toFixed(4)}, ${(p.py * PX - Y0).toFixed(4)}, ${(p.pz * PX).toFixed(4)}), vec3f(${(p.sx * PX).toFixed(4)}, ${(p.sy * PX).toFixed(4)}, ${(p.sz * PX).toFixed(4)}))${comma} // ${p.name}`;
@@ -453,6 +522,10 @@ const parts = array<Part, ${partCount}>(
 ${partLines}
 );
 
+const parts_slim = array<Part, ${partCountSlim}>(
+${partLinesSlim}
+);
+
 const phases = array<f32, ${partCount}>(${phases});
 const pivot_y = ${PIVOT_Y.toFixed(4)}f;
 
@@ -468,15 +541,15 @@ fn uv_for_part(part_id: u32, face: u32, is_slim: f32) -> FaceUV {
     switch part_id {
         case 0u  { return uv_head[face]; }
         case 1u  { return uv_body[face]; }
-        case 2u  { return select(uv_rarm[face], uv_rarm_slim[face], is_slim != 0.0); }
-        case 3u  { return select(uv_larm[face], uv_larm_slim[face], is_slim != 0.0); }
+        case 2u  { if (is_slim != 0.0) { return uv_rarm_slim[face]; } else { return uv_rarm[face]; } }
+        case 3u  { if (is_slim != 0.0) { return uv_larm_slim[face]; } else { return uv_larm[face]; } }
         case 4u  { return uv_rleg[face]; }
         case 5u  { return uv_lleg[face]; }
         case 6u  { return uv_cape[face]; }
         case 7u  { return uv_head_ov[face]; }
         case 8u  { return uv_body_ov[face]; }
-        case 9u  { return select(uv_rarm_ov[face], uv_rarm_ov_slim[face], is_slim != 0.0); }
-        case 10u { return select(uv_larm_ov[face], uv_larm_ov_slim[face], is_slim != 0.0); }
+        case 9u  { if (is_slim != 0.0) { return uv_rarm_ov_slim[face]; } else { return uv_rarm_ov[face]; } }
+        case 10u { if (is_slim != 0.0) { return uv_larm_ov_slim[face]; } else { return uv_larm_ov[face]; } }
         case 11u { return uv_rleg_ov[face]; }
         case 12u { return uv_lleg_ov[face]; }
         default  { return uv_cape_ov[face]; }
@@ -507,14 +580,20 @@ fn view() -> mat4x4f {
 fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
     let part_id   = id / ${CUBE.length}u;
     let vertex_id = id % ${CUBE.length}u;
-    let part      = parts[part_id];
+    var part      = parts[part_id];
     let face      = vertex_id / 6u;
 
-    var sz = part.size;
     // Apply slim arm width for base arms (2,3) and overlay arms (9,10)
     if (part_id == 2u || part_id == 3u || part_id == 9u || part_id == 10u) {
-        sz.x *= 1.0 - uniforms.is_slim * 0.25;
+        var slim_part_id = 0u;
+        if (part_id == 2u || part_id == 3u) {
+          slim_part_id = part_id - 2u;
+        }else{
+          slim_part_id = part_id - 7u;
+        }
+        part=parts_slim[slim_part_id];
     }
+    var sz = part.size;
     var p = cube[vertex_id] * sz;
 
     // ── limb swing animation (parts 0-6: base, 7-12: overlay) ──
@@ -554,6 +633,16 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
             let cape_rot = mul4(rotate_y(3.14159), rotate_x(-angle_x));
             p = (cape_rot * vec4f(p - cape_pivot, 1.0)).xyz + cape_pivot;
         }
+    }
+
+    // ── slim arm position offset ──────────────────────────────────
+    // When the arm is narrowed (sz.x × 0.75), the inner edge pulls
+    // away from the body by 0.5 px.  Push the arm back toward the
+    // body centre so it stays flush.
+    if (uniforms.is_slim != 0.0 && (part_id == 2u || part_id == 3u || part_id == 9u || part_id == 10u)) {
+        // Right arm (2, 9) shift +X, left arm (3, 10) shift -X
+        let sign = select(-1.0, 1.0, part_id == 2u || part_id == 9u);
+        p.x += sign * 0.03125;
     }
 
     p += part.pos;
