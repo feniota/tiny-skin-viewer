@@ -7,6 +7,6 @@
  * @module
  */
 
-// deno-lint-ignore no-sloppy-imports
+/* @ts-types="../dist/SkinViewer.svelte.d.ts" */
 export { default as SkinViewer } from "../dist/SkinViewer.svelte.js";
 export type { SkinViewerProps } from "../dist/types.d.ts";
