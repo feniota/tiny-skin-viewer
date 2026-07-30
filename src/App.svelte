@@ -57,7 +57,7 @@
   <span class="val">{time.toFixed(1)}s</span>
 </div>
 
-<SkinViewer skinUrl="/Template_slim_nooverlay.png" isSlim {scale} {capeUrl} {resetId} {time} />
+<SkinViewer skinUrl="/Template_classic.png" {scale} {capeUrl} {resetId} {time} />
 
 <SkinViewer skinUrl="/Template_slim.png" isSlim />
 

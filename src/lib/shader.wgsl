@@ -370,7 +370,11 @@ fn uv_for_part(part_id: u32, face: u32, is_slim: f32) -> FaceUV {
 
 // ── camera ────────────────────────────────────────────────────────
 // Perspective projection: 60° FOV, clip planes 0.1–10.0.
-// View matrix: camera at (0, 0, -4) looking toward +Z.
+// Camera orbits on a sphere (radius = 4) around the model origin.
+//   rot_y  = longitude (yaw)   — horizontal orbit around Y axis
+//   rot_x  = latitude (pitch)  — vertical angle, clamped ±1.5 rad
+// The camera always looks at the origin with a fixed world-up vector
+// (+Y), so no roll is introduced regardless of orbit position.
 
 /// Perspective projection matrix (60° FOV, dynamic aspect ratio)
 fn projection() -> mat4x4f {
@@ -383,11 +387,31 @@ fn projection() -> mat4x4f {
         vec4f(0,0,-far/(far-near),-1), vec4f(0,0,-(far*near)/(far-near),0),
     );
 }
-/// View matrix: camera at (0, 0, -4), looking at origin
-fn view() -> mat4x4f {
+/// lookAt view matrix for a +Z-forward convention (matching the
+/// projection matrix). Uses `eye - tgt` for forward so that the
+/// camera looks toward +Z, not -Z.
+fn lookAt(eye: vec3f, tgt: vec3f, up: vec3f) -> mat4x4f {
+    let f = normalize(eye - tgt);
+    let r = normalize(cross(up, f));
+    let u = cross(f, r);
     return mat4x4f(
-        vec4f(1,0,0,0), vec4f(0,1,0,0), vec4f(0,0,1,0), vec4f(0,0,-4,1),
+        vec4f(r.x, u.x, f.x, 0.0),
+        vec4f(r.y, u.y, f.y, 0.0),
+        vec4f(r.z, u.z, f.z, 0.0),
+        vec4f(-dot(r, eye), -dot(u, eye), -dot(f, eye), 1.0),
     );
+}
+/// Spherical orbit camera view matrix.
+/// Camera sits on a sphere of radius 4, positioned by longitude (rot_y)
+/// and latitude (rot_x). Always looks at the origin. No roll.
+fn camera_view() -> mat4x4f {
+    let d = 4.0;
+    let eye = vec3f(
+        d * cos(uniforms.rot_x) * sin(uniforms.rot_y),
+        d * sin(uniforms.rot_x),
+        d * cos(uniforms.rot_x) * cos(uniforms.rot_y),
+    );
+    return lookAt(eye, vec3f(0.0), vec3f(0.0, 1.0, 0.0));
 }
 
 // ── vertex shader ─────────────────────────────────────────────────
@@ -408,13 +432,15 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
     // part definition when uniforms.is_slim = 1 (Alex model).
     // parts_slim[0..1] = base arms, parts_slim[2..3] = overlay arms.
     if (part_id == 2u || part_id == 3u || part_id == 9u || part_id == 10u) {
-        var slim_part_id = 0u;
-        if (part_id == 2u || part_id == 3u) {
-          slim_part_id = part_id - 2u;    // part_id 2→0, 3→1 (base arms)
-        }else{
-          slim_part_id = part_id - 7u;    // part_id 9→2, 10→3 (overlay arms)
+        if (uniforms.is_slim != 0.0) {
+            var slim_part_id = 0u;
+            if (part_id == 2u || part_id == 3u) {
+            slim_part_id = part_id - 2u;    // part_id 2→0, 3→1 (base arms)
+            }else{
+            slim_part_id = part_id - 7u;    // part_id 9→2, 10→3 (overlay arms)
+            }
+            part=parts_slim[slim_part_id];
         }
-        part=parts_slim[slim_part_id];
     }
     let sz = part.size;
 
@@ -469,9 +495,11 @@ fn vs_main(@builtin(vertex_index) id: u32) -> VertexOutput {
     p += part.pos;
 
     // ── model-view-projection transform ───────────────────────────
-    // Model = orbital camera rotation (Y then X), then view, then projection.
-    let model = mul4(rotate_y(uniforms.rot_y), rotate_x(-uniforms.rot_x));
-    let pv = mul4(mul4(projection(), view()), model);
+    // Camera orbits the model on a sphere (spherical coordinates).
+    // The camera position is computed from rot_y (longitude) and
+    // rot_x (latitude), then a lookAt matrix targets the origin.
+    // No model rotation is needed — the camera moves instead.
+    let pv = mul4(projection(), camera_view());
 
     // ── texture coordinate lookup ─────────────────────────────────
     // Map from unit-square UV (cube_uv) to the texture rect for this

@@ -199,9 +199,8 @@ You can detect this separately and show a fallback, e.g.,
           dy = e.clientY - lastY;
         lastX = e.clientX;
         lastY = e.clientY;
-        rotY += dx * 0.005;
-        const facing = Math.cos(rotY) >= 0 ? 1 : -1;
-        rotX = Math.max(-1.5, Math.min(1.5, rotX - dy * 0.005 * facing));
+        rotY -= dx * 0.005;
+        rotX = Math.max(-1.5, Math.min(1.5, rotX + dy * 0.005));
       });
       addEventListener("pointerup", () => {
         dragging = false;
@@ -341,6 +340,7 @@ You can detect this separately and show a fallback, e.g.,
     display: block;
     cursor: grab;
     background: transparent;
+    touch-action: none;
   }
   canvas:active {
     cursor: grabbing;
